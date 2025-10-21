@@ -41,8 +41,8 @@ class CriblResource:
         Returns:
             dict: Current resource state, or None if doesn't exist
         """
+        endpoint = f"{self.endpoint_base}/{self.resource_id}"
         try:
-            endpoint = f"{self.endpoint_base}/{self.resource_id}"
             response = self.client.get(endpoint)
             
             # Cribl API returns list structure: {"count": N, "items": [...]}
@@ -50,23 +50,38 @@ class CriblResource:
             if isinstance(response, dict):
                 if 'items' in response:
                     items = response.get('items', [])
-                    if not items or len(items) == 0:
+                    count = response.get('count', 0)
+                    
+                    # Check if no items exist
+                    if count == 0 or not items or len(items) == 0:
                         return None
+                    
                     # Return first (and should be only) item
                     return items[0]
                 elif 'count' in response and response.get('count', 0) == 0:
                     return None
             
+            # If response doesn't have items structure, return it as-is
+            # (some endpoints may return the resource directly)
             return response
         except CriblAPIError as e:
             error_str = str(e)
-            # Check for 404 or not found errors
-            if any(x in error_str for x in ["404", "Not Found", "not found", "Item not found", "does not exist"]):
+            
+            # Check for 404 or not found errors - these indicate resource doesn't exist
+            if "404" in error_str:
                 return None
-            raise
+            if any(phrase in error_str.lower() for phrase in ["not found", "item not found", "does not exist", "entity with"]):
+                # "entity with" catches "Entity with ID does not exist" messages
+                # But NOT "already exists" which indicates resource DOES exist
+                if "already exists" not in error_str.lower():
+                    return None
+            
+            # For any other error, re-raise it (don't assume resource doesn't exist)
+            # Include the endpoint in the error for debugging
+            raise CriblAPIError(f"Failed to get current state from {endpoint}: {error_str}")
         except Exception as e:
             # Catch any other exception and re-raise with context
-            raise CriblAPIError(f"Failed to get current state: {str(e)}")
+            raise CriblAPIError(f"Failed to get current state from {endpoint}: {str(e)}")
     
     def create_resource(self, desired_state):
         """

@@ -21,78 +21,80 @@
         msg: "Testing all Cribl Stream declarative modules"
 
     # ========== CLEANUP FROM PREVIOUS RUNS ==========
+    - name: Cleanup - Ensure test resources are deleted before starting tests
+      block:
+        - name: Cleanup - Delete test pipeline
+          cribl.stream.pipeline:
+            session: "{{ cribl_session.session }}"
+            id: test_pipeline_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
 
-    - name: Cleanup - Delete test pipeline
-      cribl.stream.pipeline:
-        session: "{{ cribl_session.session }}"
-        id: test_pipeline_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test parser
+          cribl.stream.parser:
+            session: "{{ cribl_session.session }}"
+            id: test_parser_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
 
-    - name: Cleanup - Delete test parser
-      cribl.stream.parser:
-        session: "{{ cribl_session.session }}"
-        id: test_parser_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test variable
+          cribl.stream.var:
+            session: "{{ cribl_session.session }}"
+            id: test_var_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
+          register: cleanup_var
+          
+        - name: Debug - Check if variable cleanup succeeded
+          debug:
+            var: cleanup_var
 
-    - name: Cleanup - Delete test variable
-      cribl.stream.var:
-        session: "{{ cribl_session.session }}"
-        id: test_var_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test breaker
+          cribl.stream.breaker:
+            session: "{{ cribl_session.session }}"
+            id: test_breaker_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
 
-    - name: Cleanup - Delete test breaker
-      cribl.stream.breaker:
-        session: "{{ cribl_session.session }}"
-        id: test_breaker_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test grok
+          cribl.stream.grok:
+            session: "{{ cribl_session.session }}"
+            id: test_grok_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
 
-    - name: Cleanup - Delete test grok
-      cribl.stream.grok:
-        session: "{{ cribl_session.session }}"
-        id: test_grok_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test regex
+          cribl.stream.regex:
+            session: "{{ cribl_session.session }}"
+            id: test_regex_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
 
-    - name: Cleanup - Delete test regex
-      cribl.stream.regex:
-        session: "{{ cribl_session.session }}"
-        id: test_regex_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test schema
+          cribl.stream.schema:
+            session: "{{ cribl_session.session }}"
+            id: test_schema_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
 
-    - name: Cleanup - Delete test schema
-      cribl.stream.schema:
-        session: "{{ cribl_session.session }}"
-        id: test_schema_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
-
-    - name: Cleanup - Delete test parquet schema
-      cribl.stream.parquet_schema:
-        session: "{{ cribl_session.session }}"
-        id: test_parquet_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
-    
-    - name: Cleanup - Delete test variable
-      cribl.stream.var:
-        session: "{{ cribl_session.session }}"
-        id: test_var_comprehensive
-        state: absent
-        validate_certs: false
-      ignore_errors: true
+        - name: Cleanup - Delete test parquet schema
+          cribl.stream.parquet_schema:
+            session: "{{ cribl_session.session }}"
+            id: test_parquet_comprehensive
+            state: absent
+            validate_certs: false
+          ignore_errors: true
+      
+    - name: Wait a moment for Cribl to process deletions
+      pause:
+        seconds: 2
 
     # ========== PIPELINE TESTS ==========
     - name: Test Pipeline - Create
@@ -189,6 +191,7 @@
       when: test_parser_create is succeeded
 
     # ========== VARIABLE TESTS ==========
+
     - name: Test Variable - Create
       cribl.stream.var:
         session: "{{ cribl_session.session }}"
@@ -200,6 +203,10 @@
         validate_certs: false
       register: test_var_create
       ignore_errors: true
+      
+    - name: Debug - Show variable create result
+      debug:
+        var: test_var_create
 
     - name: Test Variable - Idempotency
       cribl.stream.var:

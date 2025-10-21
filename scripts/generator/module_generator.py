@@ -80,9 +80,11 @@ class ModuleGenerator:
         path_params = re.findall(r'\{([^}]+)\}', endpoint)
         
         code = self.template.main_function_start(arg_spec)
+        # Define endpoint first, before any substitution
+        code += f'\n        endpoint = "{endpoint}"\n'
         code += self._generate_endpoint_substitution(endpoint, path_params)
         code += self._generate_data_preparation(params, path_params)
-        code += self.template.api_call(endpoint, method)
+        code += self.template.api_call_without_endpoint_def(method)
         
         return code
 

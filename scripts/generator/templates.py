@@ -171,9 +171,56 @@ def main():
 
     @staticmethod
     def api_call(endpoint: str, method: str) -> str:
+        """Legacy method - kept for compatibility"""
         return f'''
         endpoint = "{endpoint}"
         
+        if module.check_mode:
+            module.exit_json(
+                changed=True,
+                msg="Check mode: Would perform {method.upper()} request to {{endpoint}}",
+                endpoint=endpoint
+            )
+
+        method = "{method.upper()}"
+        if method == "GET":
+            response = client.get(endpoint, params=data if data else None)
+            changed = False
+        elif method == "POST":
+            response = client.post(endpoint, data=data if data else None)
+            changed = True
+        elif method == "PUT":
+            response = client.put(endpoint, data=data if data else None)
+            changed = True
+        elif method == "PATCH":
+            response = client.patch(endpoint, data=data if data else None)
+            changed = True
+        elif method == "DELETE":
+            response = client.delete(endpoint)
+            changed = True
+        else:
+            module.fail_json(msg=f"Unsupported method: {{method}}")
+
+        module.exit_json(
+            changed=changed,
+            msg=f"{{method}} request to {{endpoint}} successful",
+            response=response
+        )
+
+    except CriblAPIError as e:
+        module.fail_json(msg=str(e))
+    except Exception as e:
+        module.fail_json(msg=f"Unexpected error: {{str(e)}}")
+
+
+if __name__ == '__main__':
+    main()
+'''
+
+    @staticmethod
+    def api_call_without_endpoint_def(method: str) -> str:
+        """API call logic without endpoint definition (endpoint already defined)"""
+        return f'''
         if module.check_mode:
             module.exit_json(
                 changed=True,
