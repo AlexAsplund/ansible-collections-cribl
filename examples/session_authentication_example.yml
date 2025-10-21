@@ -1,0 +1,104 @@
+---
+# Example: Using the new auth_session module for better authentication
+#
+# This demonstrates the recommended way to authenticate with Cribl:
+# 1. Create a session once
+# 2. Reuse the session across multiple tasks
+# 3. Sessions automatically handle token refresh
+
+- name: Cribl Session Authentication Example
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "https://your-cribl-instance.com"
+    cribl_username: "admin"
+    # In production, use ansible-vault for passwords
+    cribl_password: "yourpassword"
+
+  tasks:
+    # Step 1: Create an authenticated session
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_session
+      no_log: true  # Don't log credentials
+
+    # Step 2: Use the session in multiple tasks without re-authenticating
+    
+    - name: Get all system users
+      cribl.core.system_users_get:
+        session: "{{ cribl_session.session }}"
+      register: all_users
+    
+    - name: Display users
+      debug:
+        msg: "Found {{ all_users.response | length }} users"
+    
+    - name: Get system information
+      cribl.core.system_info_get:
+        session: "{{ cribl_session.session }}"
+      register: system_info
+    
+    - name: Display Cribl version
+      debug:
+        msg: "Cribl version: {{ system_info.response.version }}"
+    
+    # You can use the session in loops efficiently
+    - name: Get details for specific users
+      cribl.core.system_users_id_get:
+        session: "{{ cribl_session.session }}"
+        id: "{{ item }}"
+      loop:
+        - admin
+        - user1
+        - user2
+      register: user_details
+      ignore_errors: true
+    
+    # Session works across different module types
+    - name: Get all worker groups (if using leader/worker mode)
+      cribl.core.master_groups_get:
+        session: "{{ cribl_session.session }}"
+      register: worker_groups
+      ignore_errors: true
+    
+    - name: Get system settings
+      cribl.core.system_settings_conf_get:
+        session: "{{ cribl_session.session }}"
+      register: settings
+    
+    # Sessions automatically refresh tokens if they expire during long-running playbooks
+    - name: Long-running task example
+      cribl.core.health_get:
+        session: "{{ cribl_session.session }}"
+      register: health_check
+
+# Alternative: Direct authentication (not recommended for multiple tasks)
+- name: Direct Authentication Example
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Get users with direct authentication
+      cribl.core.system_users_get:
+        base_url: "https://your-cribl-instance.com"
+        username: admin
+        password: yourpassword
+        validate_certs: false
+      register: users
+      # Note: This authenticates every time, less efficient
+
+# Alternative: Using existing token
+- name: Token Authentication Example
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Get users with existing token
+      cribl.core.system_users_get:
+        base_url: "https://your-cribl-instance.com"
+        token: "{{ lookup('env', 'CRIBL_TOKEN') }}"
+        validate_certs: false
+      register: users
+

@@ -1,0 +1,148 @@
+---
+- name: Test Cribl Stream Var Declarative Module
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+    test_var_id: "test_ansible_var"
+  
+  tasks:
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+      register: cribl_session
+      no_log: true
+
+    - name: "========== VAR CRUD TESTS =========="
+      debug:
+        msg: "Testing Cribl Stream Var declarative module"
+
+    # CREATE
+    - name: Create test variable (declarative)
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        type: string
+        description: "Test variable created by Ansible"
+        value: "test_value_123"
+        state: present
+        validate_certs: false
+      register: var_create
+
+    - name: Display var create result
+      debug:
+        var: var_create
+
+    - name: Verify var was created
+      assert:
+        that:
+          - var_create.changed == true
+        fail_msg: "Var was not created"
+        success_msg: "✓ Var created successfully"
+      when: var_create is succeeded
+
+    # IDEMPOTENCY TEST
+    - name: Create same var again (should be idempotent)
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        type: string
+        description: "Test variable created by Ansible"
+        value: "test_value_123"
+        state: present
+        validate_certs: false
+      register: var_idempotent
+      when: var_create is succeeded
+
+    - name: Display idempotency result
+      debug:
+        var: var_idempotent
+      when: var_idempotent is not skipped
+
+    - name: Verify var creation is idempotent
+      assert:
+        that:
+          - var_idempotent.changed == false
+        fail_msg: "Var is NOT idempotent!"
+        success_msg: "✓ Var is idempotent"
+      when: var_idempotent is succeeded
+
+    # UPDATE TEST
+    - name: Update var value
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        description: "Test variable UPDATED by Ansible"
+        value: "updated_value_456"
+        state: present
+        validate_certs: false
+      register: var_update
+      when: var_create is succeeded
+
+    - name: Verify var was updated
+      assert:
+        that:
+          - var_update.changed == true
+        fail_msg: "Var was not updated"
+        success_msg: "✓ Var updated successfully"
+      when: var_update is succeeded
+
+    # CLEANUP
+    - name: Delete test var
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        state: absent
+        validate_certs: false
+      register: var_delete
+      when: var_create is succeeded
+
+    - name: Display delete result
+      debug:
+        var: var_delete
+      when: var_delete is not skipped
+
+    - name: Verify var was deleted
+      assert:
+        that:
+          - var_delete.changed == true
+        fail_msg: "Var was not deleted"
+        success_msg: "✓ Var deleted successfully"
+      when: var_delete is succeeded
+
+    # IDEMPOTENCY TEST - Delete again
+    - name: Delete same var again (should be idempotent)
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        state: absent
+        validate_certs: false
+      register: var_delete_idempotent
+      when: var_delete is succeeded
+
+    - name: Verify deletion is idempotent
+      assert:
+        that:
+          - var_delete_idempotent.changed == false
+        fail_msg: "Var deletion is NOT idempotent!"
+        success_msg: "✓ Var deletion is idempotent"
+      when: var_delete_idempotent is succeeded
+
+    # SUMMARY
+    - name: Var Test Summary
+      debug:
+        msg:
+          - "========================================="
+          - "Var Declarative Module Test Summary"
+          - "========================================="
+          - "✓ Create: {{ 'PASSED' if (var_create is succeeded and var_create.changed) else 'FAILED' }}"
+          - "✓ Idempotency (create): {{ 'PASSED' if (var_idempotent is succeeded and not var_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "✓ Update: {{ 'PASSED' if (var_update is succeeded and var_update.changed) else 'FAILED/SKIP' }}"
+          - "✓ Delete: {{ 'PASSED' if (var_delete is succeeded and var_delete.changed) else 'FAILED/SKIP' }}"
+          - "✓ Idempotency (delete): {{ 'PASSED' if (var_delete_idempotent is succeeded and not var_delete_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "========================================="
+

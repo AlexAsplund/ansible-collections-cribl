@@ -1,0 +1,2108 @@
+---
+- name: Test All Declarative Modules
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+  
+  tasks:
+
+    # CORE Declarative Modules
+
+    - name: Create authentication session for core
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_core_session
+
+    - name: Test banner - Create
+      cribl.core.banner:
+        session: "{{ cribl_core_session.session }}"
+        id: test_banner_ansible
+        state: present
+      register: banner_create
+    
+    - name: Test banner - Idempotency
+      cribl.core.banner:
+        session: "{{ cribl_core_session.session }}"
+        id: test_banner_ansible
+        state: present
+      register: banner_idempotent
+    
+    - name: Verify banner idempotency
+      assert:
+        that:
+          - banner_create.changed == true
+          - banner_idempotent.changed == false
+        fail_msg: "banner is not idempotent!"
+    
+    - name: Test banner - Delete
+      cribl.core.banner:
+        session: "{{ cribl_core_session.session }}"
+        id: test_banner_ansible
+        state: absent
+      register: banner_delete
+    
+    - name: Test banner - Delete idempotency
+      cribl.core.banner:
+        session: "{{ cribl_core_session.session }}"
+        id: test_banner_ansible
+        state: absent
+      register: banner_delete_idempotent
+    
+    - name: Verify banner delete idempotency
+      assert:
+        that:
+          - banner_delete.changed == true or banner_delete.failed == true
+          - banner_delete_idempotent.changed == false
+        fail_msg: "banner delete is not idempotent!"
+
+    - name: Test certificate - Create
+      cribl.core.certificate:
+        session: "{{ cribl_core_session.session }}"
+        id: test_certificate_ansible
+        state: present
+      register: certificate_create
+    
+    - name: Test certificate - Idempotency
+      cribl.core.certificate:
+        session: "{{ cribl_core_session.session }}"
+        id: test_certificate_ansible
+        state: present
+      register: certificate_idempotent
+    
+    - name: Verify certificate idempotency
+      assert:
+        that:
+          - certificate_create.changed == true
+          - certificate_idempotent.changed == false
+        fail_msg: "certificate is not idempotent!"
+    
+    - name: Test certificate - Delete
+      cribl.core.certificate:
+        session: "{{ cribl_core_session.session }}"
+        id: test_certificate_ansible
+        state: absent
+      register: certificate_delete
+    
+    - name: Test certificate - Delete idempotency
+      cribl.core.certificate:
+        session: "{{ cribl_core_session.session }}"
+        id: test_certificate_ansible
+        state: absent
+      register: certificate_delete_idempotent
+    
+    - name: Verify certificate delete idempotency
+      assert:
+        that:
+          - certificate_delete.changed == true or certificate_delete.failed == true
+          - certificate_delete_idempotent.changed == false
+        fail_msg: "certificate delete is not idempotent!"
+
+    - name: Test worker_group - Create
+      cribl.core.worker_group:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_group_ansible
+        state: present
+      register: worker_group_create
+    
+    - name: Test worker_group - Idempotency
+      cribl.core.worker_group:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_group_ansible
+        state: present
+      register: worker_group_idempotent
+    
+    - name: Verify worker_group idempotency
+      assert:
+        that:
+          - worker_group_create.changed == true
+          - worker_group_idempotent.changed == false
+        fail_msg: "worker_group is not idempotent!"
+    
+    - name: Test worker_group - Delete
+      cribl.core.worker_group:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_group_ansible
+        state: absent
+      register: worker_group_delete
+    
+    - name: Test worker_group - Delete idempotency
+      cribl.core.worker_group:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_group_ansible
+        state: absent
+      register: worker_group_delete_idempotent
+    
+    - name: Verify worker_group delete idempotency
+      assert:
+        that:
+          - worker_group_delete.changed == true or worker_group_delete.failed == true
+          - worker_group_delete_idempotent.changed == false
+        fail_msg: "worker_group delete is not idempotent!"
+
+    - name: Test key - Create
+      cribl.core.key:
+        session: "{{ cribl_core_session.session }}"
+        id: test_key_ansible
+        state: present
+      register: key_create
+    
+    - name: Test key - Idempotency
+      cribl.core.key:
+        session: "{{ cribl_core_session.session }}"
+        id: test_key_ansible
+        state: present
+      register: key_idempotent
+    
+    - name: Verify key idempotency
+      assert:
+        that:
+          - key_create.changed == true
+          - key_idempotent.changed == false
+        fail_msg: "key is not idempotent!"
+    
+    - name: Test key - Delete
+      cribl.core.key:
+        session: "{{ cribl_core_session.session }}"
+        id: test_key_ansible
+        state: absent
+      register: key_delete
+    
+    - name: Test key - Delete idempotency
+      cribl.core.key:
+        session: "{{ cribl_core_session.session }}"
+        id: test_key_ansible
+        state: absent
+      register: key_delete_idempotent
+    
+    - name: Verify key delete idempotency
+      assert:
+        that:
+          - key_delete.changed == true or key_delete.failed == true
+          - key_delete_idempotent.changed == false
+        fail_msg: "key delete is not idempotent!"
+
+    - name: Test message - Create
+      cribl.core.message:
+        session: "{{ cribl_core_session.session }}"
+        id: test_message_ansible
+        state: present
+      register: message_create
+    
+    - name: Test message - Idempotency
+      cribl.core.message:
+        session: "{{ cribl_core_session.session }}"
+        id: test_message_ansible
+        state: present
+      register: message_idempotent
+    
+    - name: Verify message idempotency
+      assert:
+        that:
+          - message_create.changed == true
+          - message_idempotent.changed == false
+        fail_msg: "message is not idempotent!"
+    
+    - name: Test message - Delete
+      cribl.core.message:
+        session: "{{ cribl_core_session.session }}"
+        id: test_message_ansible
+        state: absent
+      register: message_delete
+    
+    - name: Test message - Delete idempotency
+      cribl.core.message:
+        session: "{{ cribl_core_session.session }}"
+        id: test_message_ansible
+        state: absent
+      register: message_delete_idempotent
+    
+    - name: Verify message delete idempotency
+      assert:
+        that:
+          - message_delete.changed == true or message_delete.failed == true
+          - message_delete_idempotent.changed == false
+        fail_msg: "message delete is not idempotent!"
+
+    - name: Test notification_target - Create
+      cribl.core.notification_target:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_target_ansible
+        state: present
+      register: notification_target_create
+    
+    - name: Test notification_target - Idempotency
+      cribl.core.notification_target:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_target_ansible
+        state: present
+      register: notification_target_idempotent
+    
+    - name: Verify notification_target idempotency
+      assert:
+        that:
+          - notification_target_create.changed == true
+          - notification_target_idempotent.changed == false
+        fail_msg: "notification_target is not idempotent!"
+    
+    - name: Test notification_target - Delete
+      cribl.core.notification_target:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_target_ansible
+        state: absent
+      register: notification_target_delete
+    
+    - name: Test notification_target - Delete idempotency
+      cribl.core.notification_target:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_target_ansible
+        state: absent
+      register: notification_target_delete_idempotent
+    
+    - name: Verify notification_target delete idempotency
+      assert:
+        that:
+          - notification_target_delete.changed == true or notification_target_delete.failed == true
+          - notification_target_delete_idempotent.changed == false
+        fail_msg: "notification_target delete is not idempotent!"
+
+    - name: Test notification - Create
+      cribl.core.notification:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_ansible
+        state: present
+      register: notification_create
+    
+    - name: Test notification - Idempotency
+      cribl.core.notification:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_ansible
+        state: present
+      register: notification_idempotent
+    
+    - name: Verify notification idempotency
+      assert:
+        that:
+          - notification_create.changed == true
+          - notification_idempotent.changed == false
+        fail_msg: "notification is not idempotent!"
+    
+    - name: Test notification - Delete
+      cribl.core.notification:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_ansible
+        state: absent
+      register: notification_delete
+    
+    - name: Test notification - Delete idempotency
+      cribl.core.notification:
+        session: "{{ cribl_core_session.session }}"
+        id: test_notification_ansible
+        state: absent
+      register: notification_delete_idempotent
+    
+    - name: Verify notification delete idempotency
+      assert:
+        that:
+          - notification_delete.changed == true or notification_delete.failed == true
+          - notification_delete_idempotent.changed == false
+        fail_msg: "notification delete is not idempotent!"
+
+    - name: Test policy - Create
+      cribl.core.policy:
+        session: "{{ cribl_core_session.session }}"
+        id: test_policy_ansible
+        state: present
+      register: policy_create
+    
+    - name: Test policy - Idempotency
+      cribl.core.policy:
+        session: "{{ cribl_core_session.session }}"
+        id: test_policy_ansible
+        state: present
+      register: policy_idempotent
+    
+    - name: Verify policy idempotency
+      assert:
+        that:
+          - policy_create.changed == true
+          - policy_idempotent.changed == false
+        fail_msg: "policy is not idempotent!"
+    
+    - name: Test policy - Delete
+      cribl.core.policy:
+        session: "{{ cribl_core_session.session }}"
+        id: test_policy_ansible
+        state: absent
+      register: policy_delete
+    
+    - name: Test policy - Delete idempotency
+      cribl.core.policy:
+        session: "{{ cribl_core_session.session }}"
+        id: test_policy_ansible
+        state: absent
+      register: policy_delete_idempotent
+    
+    - name: Verify policy delete idempotency
+      assert:
+        that:
+          - policy_delete.changed == true or policy_delete.failed == true
+          - policy_delete_idempotent.changed == false
+        fail_msg: "policy delete is not idempotent!"
+
+    - name: Test role - Create
+      cribl.core.role:
+        session: "{{ cribl_core_session.session }}"
+        id: test_role_ansible
+        state: present
+      register: role_create
+    
+    - name: Test role - Idempotency
+      cribl.core.role:
+        session: "{{ cribl_core_session.session }}"
+        id: test_role_ansible
+        state: present
+      register: role_idempotent
+    
+    - name: Verify role idempotency
+      assert:
+        that:
+          - role_create.changed == true
+          - role_idempotent.changed == false
+        fail_msg: "role is not idempotent!"
+    
+    - name: Test role - Delete
+      cribl.core.role:
+        session: "{{ cribl_core_session.session }}"
+        id: test_role_ansible
+        state: absent
+      register: role_delete
+    
+    - name: Test role - Delete idempotency
+      cribl.core.role:
+        session: "{{ cribl_core_session.session }}"
+        id: test_role_ansible
+        state: absent
+      register: role_delete_idempotent
+    
+    - name: Verify role delete idempotency
+      assert:
+        that:
+          - role_delete.changed == true or role_delete.failed == true
+          - role_delete_idempotent.changed == false
+        fail_msg: "role delete is not idempotent!"
+
+    - name: Test script - Create
+      cribl.core.script:
+        session: "{{ cribl_core_session.session }}"
+        id: test_script_ansible
+        state: present
+      register: script_create
+    
+    - name: Test script - Idempotency
+      cribl.core.script:
+        session: "{{ cribl_core_session.session }}"
+        id: test_script_ansible
+        state: present
+      register: script_idempotent
+    
+    - name: Verify script idempotency
+      assert:
+        that:
+          - script_create.changed == true
+          - script_idempotent.changed == false
+        fail_msg: "script is not idempotent!"
+    
+    - name: Test script - Delete
+      cribl.core.script:
+        session: "{{ cribl_core_session.session }}"
+        id: test_script_ansible
+        state: absent
+      register: script_delete
+    
+    - name: Test script - Delete idempotency
+      cribl.core.script:
+        session: "{{ cribl_core_session.session }}"
+        id: test_script_ansible
+        state: absent
+      register: script_delete_idempotent
+    
+    - name: Verify script delete idempotency
+      assert:
+        that:
+          - script_delete.changed == true or script_delete.failed == true
+          - script_delete_idempotent.changed == false
+        fail_msg: "script delete is not idempotent!"
+
+    - name: Test team - Create
+      cribl.core.team:
+        session: "{{ cribl_core_session.session }}"
+        id: test_team_ansible
+        state: present
+      register: team_create
+    
+    - name: Test team - Idempotency
+      cribl.core.team:
+        session: "{{ cribl_core_session.session }}"
+        id: test_team_ansible
+        state: present
+      register: team_idempotent
+    
+    - name: Verify team idempotency
+      assert:
+        that:
+          - team_create.changed == true
+          - team_idempotent.changed == false
+        fail_msg: "team is not idempotent!"
+    
+    - name: Test team - Delete
+      cribl.core.team:
+        session: "{{ cribl_core_session.session }}"
+        id: test_team_ansible
+        state: absent
+      register: team_delete
+    
+    - name: Test team - Delete idempotency
+      cribl.core.team:
+        session: "{{ cribl_core_session.session }}"
+        id: test_team_ansible
+        state: absent
+      register: team_delete_idempotent
+    
+    - name: Verify team delete idempotency
+      assert:
+        that:
+          - team_delete.changed == true or team_delete.failed == true
+          - team_delete_idempotent.changed == false
+        fail_msg: "team delete is not idempotent!"
+
+    - name: Test user - Create
+      cribl.core.user:
+        session: "{{ cribl_core_session.session }}"
+        id: test_user_ansible
+        state: present
+      register: user_create
+    
+    - name: Test user - Idempotency
+      cribl.core.user:
+        session: "{{ cribl_core_session.session }}"
+        id: test_user_ansible
+        state: present
+      register: user_idempotent
+    
+    - name: Verify user idempotency
+      assert:
+        that:
+          - user_create.changed == true
+          - user_idempotent.changed == false
+        fail_msg: "user is not idempotent!"
+    
+    - name: Test user - Delete
+      cribl.core.user:
+        session: "{{ cribl_core_session.session }}"
+        id: test_user_ansible
+        state: absent
+      register: user_delete
+    
+    - name: Test user - Delete idempotency
+      cribl.core.user:
+        session: "{{ cribl_core_session.session }}"
+        id: test_user_ansible
+        state: absent
+      register: user_delete_idempotent
+    
+    - name: Verify user delete idempotency
+      assert:
+        that:
+          - user_delete.changed == true or user_delete.failed == true
+          - user_delete_idempotent.changed == false
+        fail_msg: "user delete is not idempotent!"
+
+    - name: Test lookup - Create
+      cribl.core.lookup:
+        session: "{{ cribl_core_session.session }}"
+        id: test_lookup_ansible
+        state: present
+      register: lookup_create
+    
+    - name: Test lookup - Idempotency
+      cribl.core.lookup:
+        session: "{{ cribl_core_session.session }}"
+        id: test_lookup_ansible
+        state: present
+      register: lookup_idempotent
+    
+    - name: Verify lookup idempotency
+      assert:
+        that:
+          - lookup_create.changed == true
+          - lookup_idempotent.changed == false
+        fail_msg: "lookup is not idempotent!"
+    
+    - name: Test lookup - Delete
+      cribl.core.lookup:
+        session: "{{ cribl_core_session.session }}"
+        id: test_lookup_ansible
+        state: absent
+      register: lookup_delete
+    
+    - name: Test lookup - Delete idempotency
+      cribl.core.lookup:
+        session: "{{ cribl_core_session.session }}"
+        id: test_lookup_ansible
+        state: absent
+      register: lookup_delete_idempotent
+    
+    - name: Verify lookup delete idempotency
+      assert:
+        that:
+          - lookup_delete.changed == true or lookup_delete.failed == true
+          - lookup_delete_idempotent.changed == false
+        fail_msg: "lookup delete is not idempotent!"
+
+    - name: Test sample - Create
+      cribl.core.sample:
+        session: "{{ cribl_core_session.session }}"
+        id: test_sample_ansible
+        state: present
+      register: sample_create
+    
+    - name: Test sample - Idempotency
+      cribl.core.sample:
+        session: "{{ cribl_core_session.session }}"
+        id: test_sample_ansible
+        state: present
+      register: sample_idempotent
+    
+    - name: Verify sample idempotency
+      assert:
+        that:
+          - sample_create.changed == true
+          - sample_idempotent.changed == false
+        fail_msg: "sample is not idempotent!"
+    
+    - name: Test sample - Delete
+      cribl.core.sample:
+        session: "{{ cribl_core_session.session }}"
+        id: test_sample_ansible
+        state: absent
+      register: sample_delete
+    
+    - name: Test sample - Delete idempotency
+      cribl.core.sample:
+        session: "{{ cribl_core_session.session }}"
+        id: test_sample_ansible
+        state: absent
+      register: sample_delete_idempotent
+    
+    - name: Verify sample delete idempotency
+      assert:
+        that:
+          - sample_delete.changed == true or sample_delete.failed == true
+          - sample_delete_idempotent.changed == false
+        fail_msg: "sample delete is not idempotent!"
+
+    - name: Test profiler - Create
+      cribl.core.profiler:
+        session: "{{ cribl_core_session.session }}"
+        id: test_profiler_ansible
+        state: present
+      register: profiler_create
+    
+    - name: Test profiler - Idempotency
+      cribl.core.profiler:
+        session: "{{ cribl_core_session.session }}"
+        id: test_profiler_ansible
+        state: present
+      register: profiler_idempotent
+    
+    - name: Verify profiler idempotency
+      assert:
+        that:
+          - profiler_create.changed == true
+          - profiler_idempotent.changed == false
+        fail_msg: "profiler is not idempotent!"
+    
+    - name: Test profiler - Delete
+      cribl.core.profiler:
+        session: "{{ cribl_core_session.session }}"
+        id: test_profiler_ansible
+        state: absent
+      register: profiler_delete
+    
+    - name: Test profiler - Delete idempotency
+      cribl.core.profiler:
+        session: "{{ cribl_core_session.session }}"
+        id: test_profiler_ansible
+        state: absent
+      register: profiler_delete_idempotent
+    
+    - name: Verify profiler delete idempotency
+      assert:
+        that:
+          - profiler_delete.changed == true or profiler_delete.failed == true
+          - profiler_delete_idempotent.changed == false
+        fail_msg: "profiler delete is not idempotent!"
+
+    - name: Test secret - Create
+      cribl.core.secret:
+        session: "{{ cribl_core_session.session }}"
+        id: test_secret_ansible
+        state: present
+      register: secret_create
+    
+    - name: Test secret - Idempotency
+      cribl.core.secret:
+        session: "{{ cribl_core_session.session }}"
+        id: test_secret_ansible
+        state: present
+      register: secret_idempotent
+    
+    - name: Verify secret idempotency
+      assert:
+        that:
+          - secret_create.changed == true
+          - secret_idempotent.changed == false
+        fail_msg: "secret is not idempotent!"
+    
+    - name: Test secret - Delete
+      cribl.core.secret:
+        session: "{{ cribl_core_session.session }}"
+        id: test_secret_ansible
+        state: absent
+      register: secret_delete
+    
+    - name: Test secret - Delete idempotency
+      cribl.core.secret:
+        session: "{{ cribl_core_session.session }}"
+        id: test_secret_ansible
+        state: absent
+      register: secret_delete_idempotent
+    
+    - name: Verify secret delete idempotency
+      assert:
+        that:
+          - secret_delete.changed == true or secret_delete.failed == true
+          - secret_delete_idempotent.changed == false
+        fail_msg: "secret delete is not idempotent!"
+
+    - name: Test job - Create
+      cribl.core.job:
+        session: "{{ cribl_core_session.session }}"
+        id: test_job_ansible
+        state: present
+      register: job_create
+    
+    - name: Test job - Idempotency
+      cribl.core.job:
+        session: "{{ cribl_core_session.session }}"
+        id: test_job_ansible
+        state: present
+      register: job_idempotent
+    
+    - name: Verify job idempotency
+      assert:
+        that:
+          - job_create.changed == true
+          - job_idempotent.changed == false
+        fail_msg: "job is not idempotent!"
+    
+    - name: Test job - Delete
+      cribl.core.job:
+        session: "{{ cribl_core_session.session }}"
+        id: test_job_ansible
+        state: absent
+      register: job_delete
+    
+    - name: Test job - Delete idempotency
+      cribl.core.job:
+        session: "{{ cribl_core_session.session }}"
+        id: test_job_ansible
+        state: absent
+      register: job_delete_idempotent
+    
+    - name: Verify job delete idempotency
+      assert:
+        that:
+          - job_delete.changed == true or job_delete.failed == true
+          - job_delete_idempotent.changed == false
+        fail_msg: "job delete is not idempotent!"
+
+    - name: Test licens - Create
+      cribl.core.licens:
+        session: "{{ cribl_core_session.session }}"
+        id: test_licens_ansible
+        state: present
+      register: licens_create
+    
+    - name: Test licens - Idempotency
+      cribl.core.licens:
+        session: "{{ cribl_core_session.session }}"
+        id: test_licens_ansible
+        state: present
+      register: licens_idempotent
+    
+    - name: Verify licens idempotency
+      assert:
+        that:
+          - licens_create.changed == true
+          - licens_idempotent.changed == false
+        fail_msg: "licens is not idempotent!"
+    
+    - name: Test licens - Delete
+      cribl.core.licens:
+        session: "{{ cribl_core_session.session }}"
+        id: test_licens_ansible
+        state: absent
+      register: licens_delete
+    
+    - name: Test licens - Delete idempotency
+      cribl.core.licens:
+        session: "{{ cribl_core_session.session }}"
+        id: test_licens_ansible
+        state: absent
+      register: licens_delete_idempotent
+    
+    - name: Verify licens delete idempotency
+      assert:
+        that:
+          - licens_delete.changed == true or licens_delete.failed == true
+          - licens_delete_idempotent.changed == false
+        fail_msg: "licens delete is not idempotent!"
+
+    - name: Test project - Create
+      cribl.core.project:
+        session: "{{ cribl_core_session.session }}"
+        id: test_project_ansible
+        state: present
+      register: project_create
+    
+    - name: Test project - Idempotency
+      cribl.core.project:
+        session: "{{ cribl_core_session.session }}"
+        id: test_project_ansible
+        state: present
+      register: project_idempotent
+    
+    - name: Verify project idempotency
+      assert:
+        that:
+          - project_create.changed == true
+          - project_idempotent.changed == false
+        fail_msg: "project is not idempotent!"
+    
+    - name: Test project - Delete
+      cribl.core.project:
+        session: "{{ cribl_core_session.session }}"
+        id: test_project_ansible
+        state: absent
+      register: project_delete
+    
+    - name: Test project - Delete idempotency
+      cribl.core.project:
+        session: "{{ cribl_core_session.session }}"
+        id: test_project_ansible
+        state: absent
+      register: project_delete_idempotent
+    
+    - name: Verify project delete idempotency
+      assert:
+        that:
+          - project_delete.changed == true or project_delete.failed == true
+          - project_delete_idempotent.changed == false
+        fail_msg: "project delete is not idempotent!"
+
+    - name: Test subscription - Create
+      cribl.core.subscription:
+        session: "{{ cribl_core_session.session }}"
+        id: test_subscription_ansible
+        state: present
+      register: subscription_create
+    
+    - name: Test subscription - Idempotency
+      cribl.core.subscription:
+        session: "{{ cribl_core_session.session }}"
+        id: test_subscription_ansible
+        state: present
+      register: subscription_idempotent
+    
+    - name: Verify subscription idempotency
+      assert:
+        that:
+          - subscription_create.changed == true
+          - subscription_idempotent.changed == false
+        fail_msg: "subscription is not idempotent!"
+    
+    - name: Test subscription - Delete
+      cribl.core.subscription:
+        session: "{{ cribl_core_session.session }}"
+        id: test_subscription_ansible
+        state: absent
+      register: subscription_delete
+    
+    - name: Test subscription - Delete idempotency
+      cribl.core.subscription:
+        session: "{{ cribl_core_session.session }}"
+        id: test_subscription_ansible
+        state: absent
+      register: subscription_delete_idempotent
+    
+    - name: Verify subscription delete idempotency
+      assert:
+        that:
+          - subscription_delete.changed == true or subscription_delete.failed == true
+          - subscription_delete_idempotent.changed == false
+        fail_msg: "subscription delete is not idempotent!"
+
+    - name: Test worker - Create
+      cribl.core.worker:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_ansible
+        state: present
+      register: worker_create
+    
+    - name: Test worker - Idempotency
+      cribl.core.worker:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_ansible
+        state: present
+      register: worker_idempotent
+    
+    - name: Verify worker idempotency
+      assert:
+        that:
+          - worker_create.changed == true
+          - worker_idempotent.changed == false
+        fail_msg: "worker is not idempotent!"
+    
+    - name: Test worker - Delete
+      cribl.core.worker:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_ansible
+        state: absent
+      register: worker_delete
+    
+    - name: Test worker - Delete idempotency
+      cribl.core.worker:
+        session: "{{ cribl_core_session.session }}"
+        id: test_worker_ansible
+        state: absent
+      register: worker_delete_idempotent
+    
+    - name: Verify worker delete idempotency
+      assert:
+        that:
+          - worker_delete.changed == true or worker_delete.failed == true
+          - worker_delete_idempotent.changed == false
+        fail_msg: "worker delete is not idempotent!"
+
+    - name: Test outpost - Create
+      cribl.core.outpost:
+        session: "{{ cribl_core_session.session }}"
+        id: test_outpost_ansible
+        state: present
+      register: outpost_create
+    
+    - name: Test outpost - Idempotency
+      cribl.core.outpost:
+        session: "{{ cribl_core_session.session }}"
+        id: test_outpost_ansible
+        state: present
+      register: outpost_idempotent
+    
+    - name: Verify outpost idempotency
+      assert:
+        that:
+          - outpost_create.changed == true
+          - outpost_idempotent.changed == false
+        fail_msg: "outpost is not idempotent!"
+    
+    - name: Test outpost - Delete
+      cribl.core.outpost:
+        session: "{{ cribl_core_session.session }}"
+        id: test_outpost_ansible
+        state: absent
+      register: outpost_delete
+    
+    - name: Test outpost - Delete idempotency
+      cribl.core.outpost:
+        session: "{{ cribl_core_session.session }}"
+        id: test_outpost_ansible
+        state: absent
+      register: outpost_delete_idempotent
+    
+    - name: Verify outpost delete idempotency
+      assert:
+        that:
+          - outpost_delete.changed == true or outpost_delete.failed == true
+          - outpost_delete_idempotent.changed == false
+        fail_msg: "outpost delete is not idempotent!"
+
+    # EDGE Declarative Modules
+
+    - name: Create authentication session for edge
+      cribl.edge.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_edge_session
+
+    - name: Test process - Create
+      cribl.edge.process:
+        session: "{{ cribl_edge_session.session }}"
+        pid: test_process_ansible
+        state: present
+      register: process_create
+    
+    - name: Test process - Idempotency
+      cribl.edge.process:
+        session: "{{ cribl_edge_session.session }}"
+        pid: test_process_ansible
+        state: present
+      register: process_idempotent
+    
+    - name: Verify process idempotency
+      assert:
+        that:
+          - process_create.changed == true
+          - process_idempotent.changed == false
+        fail_msg: "process is not idempotent!"
+    
+    - name: Test process - Delete
+      cribl.edge.process:
+        session: "{{ cribl_edge_session.session }}"
+        pid: test_process_ansible
+        state: absent
+      register: process_delete
+    
+    - name: Test process - Delete idempotency
+      cribl.edge.process:
+        session: "{{ cribl_edge_session.session }}"
+        pid: test_process_ansible
+        state: absent
+      register: process_delete_idempotent
+    
+    - name: Verify process delete idempotency
+      assert:
+        that:
+          - process_delete.changed == true or process_delete.failed == true
+          - process_delete_idempotent.changed == false
+        fail_msg: "process delete is not idempotent!"
+
+    # SEARCH Declarative Modules
+
+    - name: Create authentication session for search
+      cribl.search.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_search_session
+
+    - name: Test dashboard_category - Create
+      cribl.search.dashboard_category:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_category_ansible
+        state: present
+      register: dashboard_category_create
+    
+    - name: Test dashboard_category - Idempotency
+      cribl.search.dashboard_category:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_category_ansible
+        state: present
+      register: dashboard_category_idempotent
+    
+    - name: Verify dashboard_category idempotency
+      assert:
+        that:
+          - dashboard_category_create.changed == true
+          - dashboard_category_idempotent.changed == false
+        fail_msg: "dashboard_category is not idempotent!"
+    
+    - name: Test dashboard_category - Delete
+      cribl.search.dashboard_category:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_category_ansible
+        state: absent
+      register: dashboard_category_delete
+    
+    - name: Test dashboard_category - Delete idempotency
+      cribl.search.dashboard_category:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_category_ansible
+        state: absent
+      register: dashboard_category_delete_idempotent
+    
+    - name: Verify dashboard_category delete idempotency
+      assert:
+        that:
+          - dashboard_category_delete.changed == true or dashboard_category_delete.failed == true
+          - dashboard_category_delete_idempotent.changed == false
+        fail_msg: "dashboard_category delete is not idempotent!"
+
+    - name: Test datatype - Create
+      cribl.search.datatype:
+        session: "{{ cribl_search_session.session }}"
+        id: test_datatype_ansible
+        state: present
+      register: datatype_create
+    
+    - name: Test datatype - Idempotency
+      cribl.search.datatype:
+        session: "{{ cribl_search_session.session }}"
+        id: test_datatype_ansible
+        state: present
+      register: datatype_idempotent
+    
+    - name: Verify datatype idempotency
+      assert:
+        that:
+          - datatype_create.changed == true
+          - datatype_idempotent.changed == false
+        fail_msg: "datatype is not idempotent!"
+    
+    - name: Test datatype - Delete
+      cribl.search.datatype:
+        session: "{{ cribl_search_session.session }}"
+        id: test_datatype_ansible
+        state: absent
+      register: datatype_delete
+    
+    - name: Test datatype - Delete idempotency
+      cribl.search.datatype:
+        session: "{{ cribl_search_session.session }}"
+        id: test_datatype_ansible
+        state: absent
+      register: datatype_delete_idempotent
+    
+    - name: Verify datatype delete idempotency
+      assert:
+        that:
+          - datatype_delete.changed == true or datatype_delete.failed == true
+          - datatype_delete_idempotent.changed == false
+        fail_msg: "datatype delete is not idempotent!"
+
+    - name: Test usage_group - Create
+      cribl.search.usage_group:
+        session: "{{ cribl_search_session.session }}"
+        id: test_usage_group_ansible
+        state: present
+      register: usage_group_create
+    
+    - name: Test usage_group - Idempotency
+      cribl.search.usage_group:
+        session: "{{ cribl_search_session.session }}"
+        id: test_usage_group_ansible
+        state: present
+      register: usage_group_idempotent
+    
+    - name: Verify usage_group idempotency
+      assert:
+        that:
+          - usage_group_create.changed == true
+          - usage_group_idempotent.changed == false
+        fail_msg: "usage_group is not idempotent!"
+    
+    - name: Test usage_group - Delete
+      cribl.search.usage_group:
+        session: "{{ cribl_search_session.session }}"
+        id: test_usage_group_ansible
+        state: absent
+      register: usage_group_delete
+    
+    - name: Test usage_group - Delete idempotency
+      cribl.search.usage_group:
+        session: "{{ cribl_search_session.session }}"
+        id: test_usage_group_ansible
+        state: absent
+      register: usage_group_delete_idempotent
+    
+    - name: Verify usage_group delete idempotency
+      assert:
+        that:
+          - usage_group_delete.changed == true or usage_group_delete.failed == true
+          - usage_group_delete_idempotent.changed == false
+        fail_msg: "usage_group delete is not idempotent!"
+
+    - name: Test dataset_provider_type - Create
+      cribl.search.dataset_provider_type:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_type_ansible
+        state: present
+      register: dataset_provider_type_create
+    
+    - name: Test dataset_provider_type - Idempotency
+      cribl.search.dataset_provider_type:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_type_ansible
+        state: present
+      register: dataset_provider_type_idempotent
+    
+    - name: Verify dataset_provider_type idempotency
+      assert:
+        that:
+          - dataset_provider_type_create.changed == true
+          - dataset_provider_type_idempotent.changed == false
+        fail_msg: "dataset_provider_type is not idempotent!"
+    
+    - name: Test dataset_provider_type - Delete
+      cribl.search.dataset_provider_type:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_type_ansible
+        state: absent
+      register: dataset_provider_type_delete
+    
+    - name: Test dataset_provider_type - Delete idempotency
+      cribl.search.dataset_provider_type:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_type_ansible
+        state: absent
+      register: dataset_provider_type_delete_idempotent
+    
+    - name: Verify dataset_provider_type delete idempotency
+      assert:
+        that:
+          - dataset_provider_type_delete.changed == true or dataset_provider_type_delete.failed == true
+          - dataset_provider_type_delete_idempotent.changed == false
+        fail_msg: "dataset_provider_type delete is not idempotent!"
+
+    - name: Test dataset_provider - Create
+      cribl.search.dataset_provider:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_ansible
+        state: present
+      register: dataset_provider_create
+    
+    - name: Test dataset_provider - Idempotency
+      cribl.search.dataset_provider:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_ansible
+        state: present
+      register: dataset_provider_idempotent
+    
+    - name: Verify dataset_provider idempotency
+      assert:
+        that:
+          - dataset_provider_create.changed == true
+          - dataset_provider_idempotent.changed == false
+        fail_msg: "dataset_provider is not idempotent!"
+    
+    - name: Test dataset_provider - Delete
+      cribl.search.dataset_provider:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_ansible
+        state: absent
+      register: dataset_provider_delete
+    
+    - name: Test dataset_provider - Delete idempotency
+      cribl.search.dataset_provider:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_provider_ansible
+        state: absent
+      register: dataset_provider_delete_idempotent
+    
+    - name: Verify dataset_provider delete idempotency
+      assert:
+        that:
+          - dataset_provider_delete.changed == true or dataset_provider_delete.failed == true
+          - dataset_provider_delete_idempotent.changed == false
+        fail_msg: "dataset_provider delete is not idempotent!"
+
+    - name: Test dataset - Create
+      cribl.search.dataset:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_ansible
+        state: present
+      register: dataset_create
+    
+    - name: Test dataset - Idempotency
+      cribl.search.dataset:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_ansible
+        state: present
+      register: dataset_idempotent
+    
+    - name: Verify dataset idempotency
+      assert:
+        that:
+          - dataset_create.changed == true
+          - dataset_idempotent.changed == false
+        fail_msg: "dataset is not idempotent!"
+    
+    - name: Test dataset - Delete
+      cribl.search.dataset:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_ansible
+        state: absent
+      register: dataset_delete
+    
+    - name: Test dataset - Delete idempotency
+      cribl.search.dataset:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dataset_ansible
+        state: absent
+      register: dataset_delete_idempotent
+    
+    - name: Verify dataset delete idempotency
+      assert:
+        that:
+          - dataset_delete.changed == true or dataset_delete.failed == true
+          - dataset_delete_idempotent.changed == false
+        fail_msg: "dataset delete is not idempotent!"
+
+    - name: Test dashboard - Create
+      cribl.search.dashboard:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_ansible
+        state: present
+      register: dashboard_create
+    
+    - name: Test dashboard - Idempotency
+      cribl.search.dashboard:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_ansible
+        state: present
+      register: dashboard_idempotent
+    
+    - name: Verify dashboard idempotency
+      assert:
+        that:
+          - dashboard_create.changed == true
+          - dashboard_idempotent.changed == false
+        fail_msg: "dashboard is not idempotent!"
+    
+    - name: Test dashboard - Delete
+      cribl.search.dashboard:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_ansible
+        state: absent
+      register: dashboard_delete
+    
+    - name: Test dashboard - Delete idempotency
+      cribl.search.dashboard:
+        session: "{{ cribl_search_session.session }}"
+        id: test_dashboard_ansible
+        state: absent
+      register: dashboard_delete_idempotent
+    
+    - name: Verify dashboard delete idempotency
+      assert:
+        that:
+          - dashboard_delete.changed == true or dashboard_delete.failed == true
+          - dashboard_delete_idempotent.changed == false
+        fail_msg: "dashboard delete is not idempotent!"
+
+    - name: Test macro - Create
+      cribl.search.macro:
+        session: "{{ cribl_search_session.session }}"
+        id: test_macro_ansible
+        state: present
+      register: macro_create
+    
+    - name: Test macro - Idempotency
+      cribl.search.macro:
+        session: "{{ cribl_search_session.session }}"
+        id: test_macro_ansible
+        state: present
+      register: macro_idempotent
+    
+    - name: Verify macro idempotency
+      assert:
+        that:
+          - macro_create.changed == true
+          - macro_idempotent.changed == false
+        fail_msg: "macro is not idempotent!"
+    
+    - name: Test macro - Delete
+      cribl.search.macro:
+        session: "{{ cribl_search_session.session }}"
+        id: test_macro_ansible
+        state: absent
+      register: macro_delete
+    
+    - name: Test macro - Delete idempotency
+      cribl.search.macro:
+        session: "{{ cribl_search_session.session }}"
+        id: test_macro_ansible
+        state: absent
+      register: macro_delete_idempotent
+    
+    - name: Verify macro delete idempotency
+      assert:
+        that:
+          - macro_delete.changed == true or macro_delete.failed == true
+          - macro_delete_idempotent.changed == false
+        fail_msg: "macro delete is not idempotent!"
+
+    - name: Test saved - Create
+      cribl.search.saved:
+        session: "{{ cribl_search_session.session }}"
+        id: test_saved_ansible
+        state: present
+      register: saved_create
+    
+    - name: Test saved - Idempotency
+      cribl.search.saved:
+        session: "{{ cribl_search_session.session }}"
+        id: test_saved_ansible
+        state: present
+      register: saved_idempotent
+    
+    - name: Verify saved idempotency
+      assert:
+        that:
+          - saved_create.changed == true
+          - saved_idempotent.changed == false
+        fail_msg: "saved is not idempotent!"
+    
+    - name: Test saved - Delete
+      cribl.search.saved:
+        session: "{{ cribl_search_session.session }}"
+        id: test_saved_ansible
+        state: absent
+      register: saved_delete
+    
+    - name: Test saved - Delete idempotency
+      cribl.search.saved:
+        session: "{{ cribl_search_session.session }}"
+        id: test_saved_ansible
+        state: absent
+      register: saved_delete_idempotent
+    
+    - name: Verify saved delete idempotency
+      assert:
+        that:
+          - saved_delete.changed == true or saved_delete.failed == true
+          - saved_delete_idempotent.changed == false
+        fail_msg: "saved delete is not idempotent!"
+
+    - name: Test job - Create
+      cribl.search.job:
+        session: "{{ cribl_search_session.session }}"
+        id: test_job_ansible
+        state: present
+      register: job_create
+    
+    - name: Test job - Idempotency
+      cribl.search.job:
+        session: "{{ cribl_search_session.session }}"
+        id: test_job_ansible
+        state: present
+      register: job_idempotent
+    
+    - name: Verify job idempotency
+      assert:
+        that:
+          - job_create.changed == true
+          - job_idempotent.changed == false
+        fail_msg: "job is not idempotent!"
+    
+    - name: Test job - Delete
+      cribl.search.job:
+        session: "{{ cribl_search_session.session }}"
+        id: test_job_ansible
+        state: absent
+      register: job_delete
+    
+    - name: Test job - Delete idempotency
+      cribl.search.job:
+        session: "{{ cribl_search_session.session }}"
+        id: test_job_ansible
+        state: absent
+      register: job_delete_idempotent
+    
+    - name: Verify job delete idempotency
+      assert:
+        that:
+          - job_delete.changed == true or job_delete.failed == true
+          - job_delete_idempotent.changed == false
+        fail_msg: "job delete is not idempotent!"
+
+    # STREAM Declarative Modules
+
+    - name: Create authentication session for stream
+      cribl.stream.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_stream_session
+
+    - name: Test appscope_config - Create
+      cribl.stream.appscope_config:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_appscope_config_ansible
+        state: present
+      register: appscope_config_create
+    
+    - name: Test appscope_config - Idempotency
+      cribl.stream.appscope_config:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_appscope_config_ansible
+        state: present
+      register: appscope_config_idempotent
+    
+    - name: Verify appscope_config idempotency
+      assert:
+        that:
+          - appscope_config_create.changed == true
+          - appscope_config_idempotent.changed == false
+        fail_msg: "appscope_config is not idempotent!"
+    
+    - name: Test appscope_config - Delete
+      cribl.stream.appscope_config:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_appscope_config_ansible
+        state: absent
+      register: appscope_config_delete
+    
+    - name: Test appscope_config - Delete idempotency
+      cribl.stream.appscope_config:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_appscope_config_ansible
+        state: absent
+      register: appscope_config_delete_idempotent
+    
+    - name: Verify appscope_config delete idempotency
+      assert:
+        that:
+          - appscope_config_delete.changed == true or appscope_config_delete.failed == true
+          - appscope_config_delete_idempotent.changed == false
+        fail_msg: "appscope_config delete is not idempotent!"
+
+    - name: Test grok - Create
+      cribl.stream.grok:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_grok_ansible
+        state: present
+      register: grok_create
+    
+    - name: Test grok - Idempotency
+      cribl.stream.grok:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_grok_ansible
+        state: present
+      register: grok_idempotent
+    
+    - name: Verify grok idempotency
+      assert:
+        that:
+          - grok_create.changed == true
+          - grok_idempotent.changed == false
+        fail_msg: "grok is not idempotent!"
+    
+    - name: Test grok - Delete
+      cribl.stream.grok:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_grok_ansible
+        state: absent
+      register: grok_delete
+    
+    - name: Test grok - Delete idempotency
+      cribl.stream.grok:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_grok_ansible
+        state: absent
+      register: grok_delete_idempotent
+    
+    - name: Verify grok delete idempotency
+      assert:
+        that:
+          - grok_delete.changed == true or grok_delete.failed == true
+          - grok_delete_idempotent.changed == false
+        fail_msg: "grok delete is not idempotent!"
+
+    - name: Test job - Create
+      cribl.stream.job:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_job_ansible
+        state: present
+      register: job_create
+    
+    - name: Test job - Idempotency
+      cribl.stream.job:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_job_ansible
+        state: present
+      register: job_idempotent
+    
+    - name: Verify job idempotency
+      assert:
+        that:
+          - job_create.changed == true
+          - job_idempotent.changed == false
+        fail_msg: "job is not idempotent!"
+    
+    - name: Test job - Delete
+      cribl.stream.job:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_job_ansible
+        state: absent
+      register: job_delete
+    
+    - name: Test job - Delete idempotency
+      cribl.stream.job:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_job_ansible
+        state: absent
+      register: job_delete_idempotent
+    
+    - name: Verify job delete idempotency
+      assert:
+        that:
+          - job_delete.changed == true or job_delete.failed == true
+          - job_delete_idempotent.changed == false
+        fail_msg: "job delete is not idempotent!"
+
+    - name: Test parser - Create
+      cribl.stream.parser:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parser_ansible
+        state: present
+      register: parser_create
+    
+    - name: Test parser - Idempotency
+      cribl.stream.parser:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parser_ansible
+        state: present
+      register: parser_idempotent
+    
+    - name: Verify parser idempotency
+      assert:
+        that:
+          - parser_create.changed == true
+          - parser_idempotent.changed == false
+        fail_msg: "parser is not idempotent!"
+    
+    - name: Test parser - Delete
+      cribl.stream.parser:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parser_ansible
+        state: absent
+      register: parser_delete
+    
+    - name: Test parser - Delete idempotency
+      cribl.stream.parser:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parser_ansible
+        state: absent
+      register: parser_delete_idempotent
+    
+    - name: Verify parser delete idempotency
+      assert:
+        that:
+          - parser_delete.changed == true or parser_delete.failed == true
+          - parser_delete_idempotent.changed == false
+        fail_msg: "parser delete is not idempotent!"
+
+    - name: Test regex - Create
+      cribl.stream.regex:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_regex_ansible
+        state: present
+      register: regex_create
+    
+    - name: Test regex - Idempotency
+      cribl.stream.regex:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_regex_ansible
+        state: present
+      register: regex_idempotent
+    
+    - name: Verify regex idempotency
+      assert:
+        that:
+          - regex_create.changed == true
+          - regex_idempotent.changed == false
+        fail_msg: "regex is not idempotent!"
+    
+    - name: Test regex - Delete
+      cribl.stream.regex:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_regex_ansible
+        state: absent
+      register: regex_delete
+    
+    - name: Test regex - Delete idempotency
+      cribl.stream.regex:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_regex_ansible
+        state: absent
+      register: regex_delete_idempotent
+    
+    - name: Verify regex delete idempotency
+      assert:
+        that:
+          - regex_delete.changed == true or regex_delete.failed == true
+          - regex_delete_idempotent.changed == false
+        fail_msg: "regex delete is not idempotent!"
+
+    - name: Test sds_rule - Create
+      cribl.stream.sds_rule:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_sds_rule_ansible
+        state: present
+      register: sds_rule_create
+    
+    - name: Test sds_rule - Idempotency
+      cribl.stream.sds_rule:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_sds_rule_ansible
+        state: present
+      register: sds_rule_idempotent
+    
+    - name: Verify sds_rule idempotency
+      assert:
+        that:
+          - sds_rule_create.changed == true
+          - sds_rule_idempotent.changed == false
+        fail_msg: "sds_rule is not idempotent!"
+    
+    - name: Test sds_rule - Delete
+      cribl.stream.sds_rule:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_sds_rule_ansible
+        state: absent
+      register: sds_rule_delete
+    
+    - name: Test sds_rule - Delete idempotency
+      cribl.stream.sds_rule:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_sds_rule_ansible
+        state: absent
+      register: sds_rule_delete_idempotent
+    
+    - name: Verify sds_rule delete idempotency
+      assert:
+        that:
+          - sds_rule_delete.changed == true or sds_rule_delete.failed == true
+          - sds_rule_delete_idempotent.changed == false
+        fail_msg: "sds_rule delete is not idempotent!"
+
+    - name: Test database_connection - Create
+      cribl.stream.database_connection:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_database_connection_ansible
+        state: present
+      register: database_connection_create
+    
+    - name: Test database_connection - Idempotency
+      cribl.stream.database_connection:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_database_connection_ansible
+        state: present
+      register: database_connection_idempotent
+    
+    - name: Verify database_connection idempotency
+      assert:
+        that:
+          - database_connection_create.changed == true
+          - database_connection_idempotent.changed == false
+        fail_msg: "database_connection is not idempotent!"
+    
+    - name: Test database_connection - Delete
+      cribl.stream.database_connection:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_database_connection_ansible
+        state: absent
+      register: database_connection_delete
+    
+    - name: Test database_connection - Delete idempotency
+      cribl.stream.database_connection:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_database_connection_ansible
+        state: absent
+      register: database_connection_delete_idempotent
+    
+    - name: Verify database_connection delete idempotency
+      assert:
+        that:
+          - database_connection_delete.changed == true or database_connection_delete.failed == true
+          - database_connection_delete_idempotent.changed == false
+        fail_msg: "database_connection delete is not idempotent!"
+
+    - name: Test breaker - Create
+      cribl.stream.breaker:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_breaker_ansible
+        state: present
+      register: breaker_create
+    
+    - name: Test breaker - Idempotency
+      cribl.stream.breaker:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_breaker_ansible
+        state: present
+      register: breaker_idempotent
+    
+    - name: Verify breaker idempotency
+      assert:
+        that:
+          - breaker_create.changed == true
+          - breaker_idempotent.changed == false
+        fail_msg: "breaker is not idempotent!"
+    
+    - name: Test breaker - Delete
+      cribl.stream.breaker:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_breaker_ansible
+        state: absent
+      register: breaker_delete
+    
+    - name: Test breaker - Delete idempotency
+      cribl.stream.breaker:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_breaker_ansible
+        state: absent
+      register: breaker_delete_idempotent
+    
+    - name: Verify breaker delete idempotency
+      assert:
+        that:
+          - breaker_delete.changed == true or breaker_delete.failed == true
+          - breaker_delete_idempotent.changed == false
+        fail_msg: "breaker delete is not idempotent!"
+
+    - name: Test var - Create
+      cribl.stream.var:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_var_ansible
+        state: present
+      register: var_create
+    
+    - name: Test var - Idempotency
+      cribl.stream.var:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_var_ansible
+        state: present
+      register: var_idempotent
+    
+    - name: Verify var idempotency
+      assert:
+        that:
+          - var_create.changed == true
+          - var_idempotent.changed == false
+        fail_msg: "var is not idempotent!"
+    
+    - name: Test var - Delete
+      cribl.stream.var:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_var_ansible
+        state: absent
+      register: var_delete
+    
+    - name: Test var - Delete idempotency
+      cribl.stream.var:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_var_ansible
+        state: absent
+      register: var_delete_idempotent
+    
+    - name: Verify var delete idempotency
+      assert:
+        that:
+          - var_delete.changed == true or var_delete.failed == true
+          - var_delete_idempotent.changed == false
+        fail_msg: "var delete is not idempotent!"
+
+    - name: Test hmac_function - Create
+      cribl.stream.hmac_function:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_hmac_function_ansible
+        state: present
+      register: hmac_function_create
+    
+    - name: Test hmac_function - Idempotency
+      cribl.stream.hmac_function:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_hmac_function_ansible
+        state: present
+      register: hmac_function_idempotent
+    
+    - name: Verify hmac_function idempotency
+      assert:
+        that:
+          - hmac_function_create.changed == true
+          - hmac_function_idempotent.changed == false
+        fail_msg: "hmac_function is not idempotent!"
+    
+    - name: Test hmac_function - Delete
+      cribl.stream.hmac_function:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_hmac_function_ansible
+        state: absent
+      register: hmac_function_delete
+    
+    - name: Test hmac_function - Delete idempotency
+      cribl.stream.hmac_function:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_hmac_function_ansible
+        state: absent
+      register: hmac_function_delete_idempotent
+    
+    - name: Verify hmac_function delete idempotency
+      assert:
+        that:
+          - hmac_function_delete.changed == true or hmac_function_delete.failed == true
+          - hmac_function_delete_idempotent.changed == false
+        fail_msg: "hmac_function delete is not idempotent!"
+
+    - name: Test input - Create
+      cribl.stream.input:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_input_ansible
+        state: present
+      register: input_create
+    
+    - name: Test input - Idempotency
+      cribl.stream.input:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_input_ansible
+        state: present
+      register: input_idempotent
+    
+    - name: Verify input idempotency
+      assert:
+        that:
+          - input_create.changed == true
+          - input_idempotent.changed == false
+        fail_msg: "input is not idempotent!"
+    
+    - name: Test input - Delete
+      cribl.stream.input:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_input_ansible
+        state: absent
+      register: input_delete
+    
+    - name: Test input - Delete idempotency
+      cribl.stream.input:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_input_ansible
+        state: absent
+      register: input_delete_idempotent
+    
+    - name: Verify input delete idempotency
+      assert:
+        that:
+          - input_delete.changed == true or input_delete.failed == true
+          - input_delete_idempotent.changed == false
+        fail_msg: "input delete is not idempotent!"
+
+    - name: Test output - Create
+      cribl.stream.output:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_output_ansible
+        state: present
+      register: output_create
+    
+    - name: Test output - Idempotency
+      cribl.stream.output:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_output_ansible
+        state: present
+      register: output_idempotent
+    
+    - name: Verify output idempotency
+      assert:
+        that:
+          - output_create.changed == true
+          - output_idempotent.changed == false
+        fail_msg: "output is not idempotent!"
+    
+    - name: Test output - Delete
+      cribl.stream.output:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_output_ansible
+        state: absent
+      register: output_delete
+    
+    - name: Test output - Delete idempotency
+      cribl.stream.output:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_output_ansible
+        state: absent
+      register: output_delete_idempotent
+    
+    - name: Verify output delete idempotency
+      assert:
+        that:
+          - output_delete.changed == true or output_delete.failed == true
+          - output_delete_idempotent.changed == false
+        fail_msg: "output delete is not idempotent!"
+
+    - name: Test parquet_schema - Create
+      cribl.stream.parquet_schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parquet_schema_ansible
+        state: present
+      register: parquet_schema_create
+    
+    - name: Test parquet_schema - Idempotency
+      cribl.stream.parquet_schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parquet_schema_ansible
+        state: present
+      register: parquet_schema_idempotent
+    
+    - name: Verify parquet_schema idempotency
+      assert:
+        that:
+          - parquet_schema_create.changed == true
+          - parquet_schema_idempotent.changed == false
+        fail_msg: "parquet_schema is not idempotent!"
+    
+    - name: Test parquet_schema - Delete
+      cribl.stream.parquet_schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parquet_schema_ansible
+        state: absent
+      register: parquet_schema_delete
+    
+    - name: Test parquet_schema - Delete idempotency
+      cribl.stream.parquet_schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_parquet_schema_ansible
+        state: absent
+      register: parquet_schema_delete_idempotent
+    
+    - name: Verify parquet_schema delete idempotency
+      assert:
+        that:
+          - parquet_schema_delete.changed == true or parquet_schema_delete.failed == true
+          - parquet_schema_delete_idempotent.changed == false
+        fail_msg: "parquet_schema delete is not idempotent!"
+
+    - name: Test pipeline - Create
+      cribl.stream.pipeline:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pipeline_ansible
+        state: present
+      register: pipeline_create
+    
+    - name: Test pipeline - Idempotency
+      cribl.stream.pipeline:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pipeline_ansible
+        state: present
+      register: pipeline_idempotent
+    
+    - name: Verify pipeline idempotency
+      assert:
+        that:
+          - pipeline_create.changed == true
+          - pipeline_idempotent.changed == false
+        fail_msg: "pipeline is not idempotent!"
+    
+    - name: Test pipeline - Delete
+      cribl.stream.pipeline:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pipeline_ansible
+        state: absent
+      register: pipeline_delete
+    
+    - name: Test pipeline - Delete idempotency
+      cribl.stream.pipeline:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pipeline_ansible
+        state: absent
+      register: pipeline_delete_idempotent
+    
+    - name: Verify pipeline delete idempotency
+      assert:
+        that:
+          - pipeline_delete.changed == true or pipeline_delete.failed == true
+          - pipeline_delete_idempotent.changed == false
+        fail_msg: "pipeline delete is not idempotent!"
+
+    - name: Test schema - Create
+      cribl.stream.schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_schema_ansible
+        state: present
+      register: schema_create
+    
+    - name: Test schema - Idempotency
+      cribl.stream.schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_schema_ansible
+        state: present
+      register: schema_idempotent
+    
+    - name: Verify schema idempotency
+      assert:
+        that:
+          - schema_create.changed == true
+          - schema_idempotent.changed == false
+        fail_msg: "schema is not idempotent!"
+    
+    - name: Test schema - Delete
+      cribl.stream.schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_schema_ansible
+        state: absent
+      register: schema_delete
+    
+    - name: Test schema - Delete idempotency
+      cribl.stream.schema:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_schema_ansible
+        state: absent
+      register: schema_delete_idempotent
+    
+    - name: Verify schema delete idempotency
+      assert:
+        that:
+          - schema_delete.changed == true or schema_delete.failed == true
+          - schema_delete_idempotent.changed == false
+        fail_msg: "schema delete is not idempotent!"
+
+    - name: Test pack - Create
+      cribl.stream.pack:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pack_ansible
+        state: present
+      register: pack_create
+    
+    - name: Test pack - Idempotency
+      cribl.stream.pack:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pack_ansible
+        state: present
+      register: pack_idempotent
+    
+    - name: Verify pack idempotency
+      assert:
+        that:
+          - pack_create.changed == true
+          - pack_idempotent.changed == false
+        fail_msg: "pack is not idempotent!"
+    
+    - name: Test pack - Delete
+      cribl.stream.pack:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pack_ansible
+        state: absent
+      register: pack_delete
+    
+    - name: Test pack - Delete idempotency
+      cribl.stream.pack:
+        session: "{{ cribl_stream_session.session }}"
+        id: test_pack_ansible
+        state: absent
+      register: pack_delete_idempotent
+    
+    - name: Verify pack delete idempotency
+      assert:
+        that:
+          - pack_delete.changed == true or pack_delete.failed == true
+          - pack_delete_idempotent.changed == false
+        fail_msg: "pack delete is not idempotent!"

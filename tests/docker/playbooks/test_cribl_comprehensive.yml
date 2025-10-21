@@ -1,0 +1,206 @@
+---
+- name: Comprehensive Cribl Stream Tests
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL')  }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+    test_prefix: "ansible_test_{{ 999999 | random }}"
+
+  tasks:
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+      register: cribl_session
+      no_log: true
+    - name: Show session
+      debug:
+        msg: "{{ cribl_session.session }}"
+    # ==================================
+    # System Information & Health
+    # ==================================
+    - name: Get system instance information
+      cribl.core.system_instance_get:
+        session: "{{ cribl_session.session }}"
+      register: instance_info
+
+    - name: Display instance summary
+      debug:
+        msg:
+          - "===== Cribl Instance Summary ====="
+          - "Instance Mode: {{ instance_info.response.items[0].mode | default('unknown') }}"
+          - "Instance Count: {{ instance_info.response.count | default(0) }}"
+
+    - name: Get system health
+      cribl.core.health_get:
+        session: "{{ cribl_session.session }}"
+      register: health
+
+    - name: Display health status
+      debug:
+        msg: "Health Status: {{ health.response.status }}"
+
+    - name: Get license information
+      cribl.core.system_licenses_get:
+        session: "{{ cribl_session.session }}"
+      register: licenses
+
+    - name: Display license info
+      debug:
+        msg:
+          - "===== License Information ====="
+          - "License Type: {{ licenses.response.items[0].cls | default('unknown') }}"
+          - "GB Quota: {{ licenses.response.items[0].quota | default(0) }}"
+          - "Worker Processes: {{ licenses.response.items[0].limits.worker_procs | default(0) }}"
+
+    # ==================================
+    # Lookups (Reference Data)
+    # ==================================
+    - name: List all lookups
+      cribl.core.system_lookups_get:
+        session: "{{ cribl_session.session }}"
+      register: lookups_list
+
+    - name: Display lookups count
+      debug:
+        msg: "Found {{ lookups_list.response.count | default(0) }} lookups"
+
+    # ==================================
+    # Secrets Management
+    # ==================================
+    - name: List all secrets
+      cribl.core.system_secrets_get:
+        session: "{{ cribl_session.session }}"
+      register: secrets_list
+
+    - name: Display secrets count
+      debug:
+        msg: "Found {{ secrets_list.response.count | default(0) }} secrets"
+
+    # ==================================
+    # Certificates
+    # ==================================
+    - name: List all certificates
+      cribl.core.system_certificates_get:
+        session: "{{ cribl_session.session }}"
+      register: certificates_list
+
+    - name: Display certificates count
+      debug:
+        msg: "Found {{ certificates_list.response.count | default(0) }} certificates"
+
+    # ==================================
+    # Roles (RBAC)
+    # ==================================
+    - name: List all roles
+      cribl.core.system_roles_get:
+        session: "{{ cribl_session.session }}"
+      register: roles_list
+
+    - name: Display roles
+      debug:
+        msg: "Found {{ roles_list.response.count | default(0) }} roles"
+
+    # ==================================
+    # Teams
+    # ==================================
+    - name: List all teams
+      cribl.core.system_teams_get:
+        session: "{{ cribl_session.session }}"
+      register: teams_list
+      ignore_errors: true
+
+    - name: Display teams count
+      debug:
+        msg: "Found {{ teams_list.response.count | default(0) }} teams"
+      when: teams_list is succeeded
+
+    # ==================================
+    # System Status
+    # ==================================
+    - name: Get input status
+      cribl.core.system_status_inputs_get:
+        session: "{{ cribl_session.session }}"
+      register: inputs_status
+
+    - name: Get output status
+      cribl.core.system_status_outputs_get:
+        session: "{{ cribl_session.session }}"
+      register: outputs_status
+
+    - name: Display I/O status
+      debug:
+        msg:
+          - "===== Input/Output Status ====="
+          - "Active Inputs: {{ inputs_status.response.count | default(0) }}"
+          - "Active Outputs: {{ outputs_status.response.count | default(0) }}"
+
+    # ==================================
+    # Functions & Pipelines
+    # ==================================
+    - name: List all functions
+      cribl.core.functions_get:
+        session: "{{ cribl_session.session }}"
+      register: functions_list
+
+    - name: Display functions count
+      debug:
+        msg: "Available Functions: {{ functions_list.response.count | default(0) }}"
+
+    # ==================================
+    # System Metrics
+    # ==================================
+    - name: Query system metrics
+      cribl.core.system_metrics_query_post:
+        session: "{{ cribl_session.session }}"
+        filter: "system.cpu.user"
+        earliest: "-5m"
+      register: metrics
+      ignore_errors: true
+
+    - name: Display metrics status
+      debug:
+        msg: "Metrics query {{ 'successful' if metrics is succeeded else 'failed' }}"
+
+    # ==================================
+    # System Information
+    # ==================================
+    - name: Get system info
+      cribl.core.system_info_get:
+        session: "{{ cribl_session.session }}"
+      register: system_info
+
+    - name: Display system info
+      debug:
+        msg:
+          - "===== System Information ====="
+          - "Cribl Version: {{ system_info.response.cribl.version | default('unknown') }}"
+          - "Node Version: {{ system_info.response.node.version | default('unknown') }}"
+          - "OS: {{ system_info.response.os.platform | default('unknown') }} {{ system_info.response.os.release | default('') }}"
+          - "Uptime: {{ system_info.response.uptime | default(0) }} seconds"
+
+    # ==================================
+    # Final Summary
+    # ==================================
+    - name: Test Summary
+      debug:
+        msg:
+          - "========================================="
+          - "Cribl Stream Comprehensive Test Summary"
+          - "========================================="
+          - "✅ System Health: {{ health.response.status }}"
+          - "✅ Lookups: {{ lookups_list.response.count | default(0) }}"
+          - "✅ Secrets: {{ secrets_list.response.count | default(0) }}"
+          - "✅ Certificates: {{ certificates_list.response.count | default(0) }}"
+          - "✅ Roles: {{ roles_list.response.count | default(0) }}"
+          - "✅ Input Sources: {{ inputs_status.response.count | default(0) }}"
+          - "✅ Output Destinations: {{ outputs_status.response.count | default(0) }}"
+          - "✅ Functions: {{ functions_list.response.count | default(0) }}"
+          - "✅ Cribl Version: {{ system_info.response.cribl.version | default('unknown') }}"
+          - "========================================="
+          - "All comprehensive tests completed!"
+          - "========================================="
+

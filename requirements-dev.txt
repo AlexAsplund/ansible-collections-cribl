@@ -1,0 +1,27 @@
+# Development and testing requirements
+
+# Testing frameworks
+pytest>=7.0.0
+pytest-cov>=3.0.0
+pytest-mock>=3.10.0
+pytest-ansible>=3.1.0
+
+# Ansible
+ansible>=2.9
+ansible-lint>=6.0.0
+
+# Code quality
+flake8>=5.0.0
+black>=22.0.0
+pylint>=2.15.0
+
+# YAML processing
+pyyaml>=6.0
+
+# Documentation
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+
+# Utilities
+requests>=2.28.0
+

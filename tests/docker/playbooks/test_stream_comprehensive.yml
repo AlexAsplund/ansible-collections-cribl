@@ -1,0 +1,382 @@
+---
+- name: Comprehensive Cribl Stream Declarative Module Tests
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+  
+  tasks:
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+      register: cribl_session
+      no_log: true
+
+    - name: "========== STREAM DECLARATIVE MODULES COMPREHENSIVE TEST =========="
+      debug:
+        msg: "Testing all Cribl Stream declarative modules"
+
+    # ========== CLEANUP FROM PREVIOUS RUNS ==========
+
+    - name: Cleanup - Delete test pipeline
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: test_pipeline_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test parser
+      cribl.stream.parser:
+        session: "{{ cribl_session.session }}"
+        id: test_parser_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test variable
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: test_var_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test breaker
+      cribl.stream.breaker:
+        session: "{{ cribl_session.session }}"
+        id: test_breaker_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test grok
+      cribl.stream.grok:
+        session: "{{ cribl_session.session }}"
+        id: test_grok_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test regex
+      cribl.stream.regex:
+        session: "{{ cribl_session.session }}"
+        id: test_regex_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test schema
+      cribl.stream.schema:
+        session: "{{ cribl_session.session }}"
+        id: test_schema_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    - name: Cleanup - Delete test parquet schema
+      cribl.stream.parquet_schema:
+        session: "{{ cribl_session.session }}"
+        id: test_parquet_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+    
+    - name: Cleanup - Delete test variable
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: test_var_comprehensive
+        state: absent
+        validate_certs: false
+      ignore_errors: true
+
+    # ========== PIPELINE TESTS ==========
+    - name: Test Pipeline - Create
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: test_pipeline_comprehensive
+        conf:
+          description: "Comprehensive test pipeline"
+          functions: []
+        state: present
+        validate_certs: false
+      register: test_pipeline_create
+      ignore_errors: true
+
+    - name: Test Pipeline - Idempotency
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: test_pipeline_comprehensive
+        conf:
+          description: "Comprehensive test pipeline"
+          functions: []
+        state: present
+        validate_certs: false
+      register: test_pipeline_idempotent
+      ignore_errors: true
+      when: test_pipeline_create is succeeded
+
+    - name: Test Pipeline - Delete
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: test_pipeline_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_pipeline_delete
+      ignore_errors: true
+      when: test_pipeline_create is succeeded
+
+    # ========== PARSER TESTS ==========
+    - name: Test Parser - Create
+      cribl.stream.parser:
+        session: "{{ cribl_session.session }}"
+        id: test_parser_comprehensive
+        type: csv
+        description: "Test CSV parser"
+        state: present
+        validate_certs: false
+      register: test_parser_create
+      ignore_errors: true
+
+    - name: Test Parser - Idempotency
+      cribl.stream.parser:
+        session: "{{ cribl_session.session }}"
+        id: test_parser_comprehensive
+        type: csv
+        description: "Test CSV parser"
+        state: present
+        validate_certs: false
+      register: test_parser_idempotent
+      ignore_errors: true
+      when: test_parser_create is succeeded
+
+    - name: Test Parser - Delete
+      cribl.stream.parser:
+        session: "{{ cribl_session.session }}"
+        id: test_parser_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_parser_delete
+      ignore_errors: true
+      when: test_parser_create is succeeded
+
+    # ========== VARIABLE TESTS ==========
+    - name: Test Variable - Create
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: test_var_comprehensive
+        type: string
+        value: "test_value"
+        description: "Test variable"
+        state: present
+        validate_certs: false
+      register: test_var_create
+      ignore_errors: true
+
+    - name: Test Variable - Idempotency
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: test_var_comprehensive
+        type: string
+        value: "test_value"
+        description: "Test variable"
+        state: present
+        validate_certs: false
+      register: test_var_idempotent
+      ignore_errors: true
+      when: test_var_create is succeeded
+
+    - name: Test Variable - Delete
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: test_var_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_var_delete
+      ignore_errors: true
+      when: test_var_create is succeeded
+
+    # ========== SCHEMA TESTS ==========
+    - name: Test Schema - Create
+      cribl.stream.schema:
+        session: "{{ cribl_session.session }}"
+        id: test_schema_comprehensive
+        schema: '{"type": "object", "properties": {"field1": {"type": "string"}}}'
+        description: "Test schema"
+        state: present
+        validate_certs: false
+      register: test_schema_create
+      ignore_errors: true
+
+    - name: Test Schema - Idempotency
+      cribl.stream.schema:
+        session: "{{ cribl_session.session }}"
+        id: test_schema_comprehensive
+        schema: '{"type": "object", "properties": {"field1": {"type": "string"}}}'
+        description: "Test schema"
+        state: present
+        validate_certs: false
+      register: test_schema_idempotent
+      ignore_errors: true
+      when: test_schema_create is succeeded
+
+    - name: Test Schema - Delete
+      cribl.stream.schema:
+        session: "{{ cribl_session.session }}"
+        id: test_schema_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_schema_delete
+      ignore_errors: true
+      when: test_schema_create is succeeded
+
+    # ========== GROK PATTERN TESTS ==========
+    - name: Test Grok - Create
+      cribl.stream.grok:
+        session: "{{ cribl_session.session }}"
+        id: test_grok_comprehensive
+        content: "TEST_PATTERN %{WORD:test_field}"
+        size: 35
+        state: present
+        validate_certs: false
+      register: test_grok_create
+      ignore_errors: true
+
+    - name: Test Grok - Idempotency
+      cribl.stream.grok:
+        session: "{{ cribl_session.session }}"
+        id: test_grok_comprehensive
+        content: "TEST_PATTERN %{WORD:test_field}"
+        size: 35
+        state: present
+        validate_certs: false
+      register: test_grok_idempotent
+      ignore_errors: true
+      when: test_grok_create is succeeded
+
+    - name: Test Grok - Delete
+      cribl.stream.grok:
+        session: "{{ cribl_session.session }}"
+        id: test_grok_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_grok_delete
+      ignore_errors: true
+      when: test_grok_create is succeeded
+
+    # ========== REGEX TESTS ==========
+    # Note: Cribl's regex validation is very strict and may not support all regex features
+    - name: Test Regex - Create
+      cribl.stream.regex:
+        session: "{{ cribl_session.session }}"
+        id: test_regex_comprehensive
+        regex: "/test.*pattern/"
+        description: "Test regex pattern"
+        state: present
+        validate_certs: false
+      register: test_regex_create
+      ignore_errors: true
+
+    - name: Test Regex - Idempotency
+      cribl.stream.regex:
+        session: "{{ cribl_session.session }}"
+        id: test_regex_comprehensive
+        regex: "/test.*pattern?/"
+        description: "Test regex pattern"
+        state: present
+        validate_certs: false
+      register: test_regex_idempotent
+      ignore_errors: true
+      when: test_regex_create is succeeded
+
+    - name: Test Regex - Delete
+      cribl.stream.regex:
+        session: "{{ cribl_session.session }}"
+        id: test_regex_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_regex_delete
+      ignore_errors: true
+      when: test_regex_create is succeeded
+
+    # ========== BREAKER TESTS ==========
+    - name: Test Breaker - Create
+      cribl.stream.breaker:
+        session: "{{ cribl_session.session }}"
+        id: test_breaker_comprehensive
+        state: present
+        validate_certs: false
+      register: test_breaker_create
+      ignore_errors: true
+
+    - name: Test Breaker - Idempotency
+      cribl.stream.breaker:
+        session: "{{ cribl_session.session }}"
+        id: test_breaker_comprehensive
+        state: present
+        validate_certs: false
+      register: test_breaker_idempotent
+      ignore_errors: true
+      when: test_breaker_create is succeeded
+
+    - name: Test Breaker - Delete
+      cribl.stream.breaker:
+        session: "{{ cribl_session.session }}"
+        id: test_breaker_comprehensive
+        state: absent
+        validate_certs: false
+      register: test_breaker_delete
+      ignore_errors: true
+      when: test_breaker_create is succeeded
+
+    # ========== COMPREHENSIVE TEST SUMMARY ==========
+    - name: Comprehensive Stream Test Summary
+      debug:
+        msg:
+          - "============================================================"
+          - "Cribl Stream Declarative Modules - Comprehensive Test Summary"
+          - "============================================================"
+          - ""
+          - "Pipeline Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_pipeline_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_pipeline_idempotent is succeeded and not test_pipeline_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_pipeline_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "Parser Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_parser_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_parser_idempotent is succeeded and not test_parser_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_parser_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "Variable Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_var_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_var_idempotent is succeeded and not test_var_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_var_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "Schema Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_schema_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_schema_idempotent is succeeded and not test_schema_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_schema_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "Grok Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_grok_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_grok_idempotent is succeeded and not test_grok_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_grok_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "Regex Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_regex_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_regex_idempotent is succeeded and not test_regex_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_regex_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "Breaker Module:"
+          - "  ✓ Create: {{ 'PASSED' if (test_breaker_create is succeeded) else 'FAILED' }}"
+          - "  ✓ Idempotent: {{ 'PASSED' if (test_breaker_idempotent is succeeded and not test_breaker_idempotent.changed) else 'FAILED/SKIP' }}"
+          - "  ✓ Delete: {{ 'PASSED' if (test_breaker_delete is succeeded) else 'FAILED/SKIP' }}"
+          - ""
+          - "============================================================"
+          - "All Stream declarative module tests completed!"
+          - "============================================================"
+

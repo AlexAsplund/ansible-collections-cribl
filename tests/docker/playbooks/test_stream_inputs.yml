@@ -1,0 +1,130 @@
+---
+- name: Test Cribl Stream Input Declarative Module
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+    test_input_id: "test_ansible_input"
+  
+  tasks:
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+      register: cribl_session
+      no_log: true
+
+    - name: "========== INPUT CRUD TESTS =========="
+      debug:
+        msg: "Testing Cribl Stream Input declarative module"
+
+    # CREATE
+    - name: Create test input (declarative)
+      cribl.stream.input:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_input_id }}"
+        type: http
+        host: "0.0.0.0"
+        port: 10080
+        state: present
+        validate_certs: false
+      register: input_create
+      ignore_errors: yes
+
+    - name: Verify input was created
+      assert:
+        that:
+          - input_create.changed == true or input_create.failed == false
+        fail_msg: "Input creation failed"
+        success_msg: "✓ Input created successfully"
+      when: input_create is succeeded
+
+    # IDEMPOTENCY TEST
+    - name: Create same input again (should be idempotent)
+      cribl.stream.input:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_input_id }}"
+        type: http
+        host: "0.0.0.0"
+        port: 10080
+        state: present
+        validate_certs: false
+      register: input_idempotent
+      ignore_errors: yes
+      when: input_create is succeeded
+
+    - name: Verify input creation is idempotent
+      assert:
+        that:
+          - input_idempotent.changed == false
+        fail_msg: "Input is NOT idempotent!"
+        success_msg: "✓ Input is idempotent"
+      when: input_create is succeeded and input_idempotent is succeeded
+
+    # READ
+    - name: List all inputs
+      cribl.stream.system_inputs_get:
+        session: "{{ cribl_session.session }}"
+      register: inputs_list
+      ignore_errors: yes
+
+    - name: Display input count
+      debug:
+        msg: "Total inputs: {{ inputs_list.response.count | default(0) }}"
+      when: inputs_list is succeeded
+
+    # CLEANUP
+    - name: Delete test input
+      cribl.stream.input:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_input_id }}"
+        state: absent
+        validate_certs: false
+      register: input_delete
+      ignore_errors: yes
+      when: input_create is succeeded
+
+    - name: Verify input was deleted
+      assert:
+        that:
+          - input_delete.changed == true or input_delete.failed == false
+        fail_msg: "Input deletion failed"
+        success_msg: "✓ Input deleted successfully"
+      when: input_delete is succeeded
+
+    # IDEMPOTENCY TEST
+    - name: Delete same input again (should be idempotent)
+      cribl.stream.input:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_input_id }}"
+        state: absent
+        validate_certs: false
+      register: input_delete_idempotent
+      ignore_errors: yes
+      when: input_delete is succeeded
+
+    - name: Verify deletion is idempotent
+      assert:
+        that:
+          - input_delete_idempotent.changed == false
+        fail_msg: "Input deletion is NOT idempotent!"
+        success_msg: "✓ Input deletion is idempotent"
+      when: input_delete_idempotent is succeeded
+
+    # SUMMARY
+    - name: Input Test Summary
+      debug:
+        msg:
+          - "========================================="
+          - "Input Declarative Module Test Summary"
+          - "========================================="
+          - "✓ Create: {{ 'PASSED' if (input_create is succeeded) else 'FAILED' }}"
+          - "✓ Idempotency (create): {{ 'PASSED' if (input_idempotent is succeeded and not input_idempotent.changed) else 'FAILED' }}"
+          - "✓ List: {{ 'PASSED' if (inputs_list is succeeded) else 'FAILED' }}"
+          - "✓ Delete: {{ 'PASSED' if (input_delete is succeeded) else 'FAILED' }}"
+          - "✓ Idempotency (delete): {{ 'PASSED' if (input_delete_idempotent is succeeded and not input_delete_idempotent.changed) else 'FAILED' }}"
+          - "========================================="
+

@@ -1,0 +1,94 @@
+---
+- name: Test Cribl Worker Groups
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL')  }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+    test_group_id: "ansible_test_group_{{ 999999 | random }}"
+
+  tasks:
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_session
+      no_log: true
+
+    - name: List all worker groups
+      cribl.core.master_groups_get:
+        session: "{{ cribl_session.session }}"
+      register: groups_list
+      ignore_errors: true  # May not be available in single-instance mode
+
+    - name: Display worker groups
+      debug:
+        msg: "{{ 'Found ' + (groups_list.response.count | default(0) | string) + ' worker groups' if groups_list is succeeded else 'Worker groups not available (single-instance mode)' }}"
+
+    - name: Get master summary
+      cribl.core.master_summary_get:
+        session: "{{ cribl_session.session }}"
+      register: master_summary
+      ignore_errors: true
+
+    - name: Display master summary
+      debug:
+        var: master_summary.response
+      when: master_summary is succeeded
+
+    - name: Create test worker group
+      cribl.core.master_groups_post:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_group_id }}"
+        description: "Ansible integration test group"
+      register: group_create
+      ignore_errors: true
+      when: groups_list is succeeded
+
+    - name: Display group creation result
+      debug:
+        msg: "{{ 'Worker group creation: SUCCESS' if group_create is succeeded else ('Worker group creation: FAILED or SKIPPED' if group_create is defined else 'Worker group tests skipped (single-instance mode)') }}"
+
+    - name: Get specific group details
+      cribl.core.master_groups_id_get:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_group_id }}"
+      register: group_details
+      when: groups_list is succeeded and group_create is succeeded
+      ignore_errors: true
+
+    - name: Display group details
+      debug:
+        var: group_details.response
+      when: group_details is succeeded
+
+    - name: Update group description
+      cribl.core.master_groups_id_patch:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_group_id }}"
+        description: "Updated by Ansible integration test"
+      when: groups_list is succeeded and group_create is succeeded
+      register: group_update
+      ignore_errors: true
+
+    - name: Display update result
+      debug:
+        msg: "Worker group update: {{ 'SUCCESS' if group_update is succeeded else 'FAILED' }}"
+      when: group_update is defined
+
+    - name: Clean up - Delete test worker group
+      cribl.core.master_groups_id_delete:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_group_id }}"
+      when: groups_list is succeeded and group_create is succeeded
+      ignore_errors: true
+      register: group_delete
+
+    - name: Display cleanup result
+      debug:
+        msg: "Worker group cleanup completed"
+      when: group_delete is succeeded
+

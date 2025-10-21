@@ -1,0 +1,52 @@
+---
+- name: Test Cribl Connection and Basic Operations
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL')  }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+
+  tasks:
+    - name: Verify environment variables are set
+      assert:
+        that:
+          - cribl_url is defined
+          - cribl_url | length > 0
+          - cribl_username is defined
+          - cribl_password is defined
+        fail_msg: "Cribl connection variables not properly set"
+        success_msg: "Environment variables validated"
+
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false
+      register: cribl_session
+      retries: 3
+      delay: 5
+      until: cribl_session is succeeded
+      no_log: true
+
+    - name: Test connection - Get system instance information
+      cribl.core.system_instance_get:
+        session: "{{ cribl_session.session }}"
+      register: instance_info
+
+    - name: Display Cribl instance information
+      debug:
+        msg:
+          - "Cribl version: {{ instance_info.response.version | default('unknown') }}"
+          - "Product: {{ instance_info.response.product | default('unknown') }}"
+          - "GUID: {{ instance_info.response.guid | default('unknown') }}"
+
+    - name: Verify instance info was retrieved
+      assert:
+        that:
+          - instance_info is succeeded
+          - instance_info.response is defined
+        success_msg: "Successfully connected to Cribl instance"
+        fail_msg: "Failed to retrieve instance information"
+

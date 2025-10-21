@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.Python
+.venv/
+venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+*.pyc
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+tests/output/
+.cache
+
+# Ansible
+*.retry
+collections/
+galaxy_cache/
+
+# Build artifacts
+build/
+dist/
+ansible_collections/
+*.tar.gz
+*.zip
+cribl-*.tar.gz
+sdist/
+var/
+wheels/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+.project
+.pydevproject
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment
+.env
+.env.local
+env/test.env
+
+# Ansible Vault
+vault.yml
+*vault*.yml
+*.vault
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# Documentation build artifacts
+docs/_build/
+site/
+
+# Coverage reports
+.coverage.*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Other
+*.ps1
+.cursor/*
+.cursor/rules/*

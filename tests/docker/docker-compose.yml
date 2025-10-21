@@ -1,0 +1,27 @@
+services:
+  ansible-test:
+    build:
+      context: ../..
+      dockerfile: tests/docker/Dockerfile
+    container_name: cribl-ansible-test
+    volumes:
+      # Mount the entire project
+      - ../..:/ansible
+    environment:
+      # Ansible configuration
+      - ANSIBLE_FORCE_COLOR=true
+      - ANSIBLE_STDOUT_CALLBACK=yaml
+      - ANSIBLE_COLLECTIONS_PATH=/ansible/build
+    env_file:
+      - ../../env/test.env
+    working_dir: /ansible
+    networks:
+      - cribl-test-net
+    # Keep container running for interactive testing
+    tty: true
+    stdin_open: true
+
+networks:
+  cribl-test-net:
+    driver: bridge
+

@@ -1,0 +1,150 @@
+name: Build and Release Collections
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      
+      - name: Install Ansible
+        run: |
+          pip install ansible-core
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+      
+      - name: Generate modules
+        run: |
+          python scripts/generate_modules.py
+      
+      - name: Update version in galaxy.yml files
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          python scripts/update_version.py "$VERSION"
+      
+
+      - name: Build collections
+        run: |
+          mkdir -p dist
+          for collection in core stream edge search lake; do
+            if [ -d "build/ansible_collections/cribl/$collection" ]; then
+              echo "Building cribl.$collection..."
+              cd build/ansible_collections/cribl/$collection
+              ansible-galaxy collection build --output-path ../../../../dist --force
+              cd ../../../../
+            fi
+          done
+      
+      - name: List built collections
+        run: |
+          echo "Built collections:"
+          ls -lh dist/
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-tarballs
+          path: dist/*.tar.gz
+          retention-days: 30
+      
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          body: |
+            ## Cribl Ansible Collections v${{ steps.version.outputs.version }}
+            
+            ### Installation
+            
+            Install all collections:
+            ```bash
+            ansible-galaxy collection install cribl-core-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-stream-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-edge-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-search-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-lake-${{ steps.version.outputs.version }}.tar.gz
+            ```
+            
+            Or download from release assets below.
+            
+            ### What's Included
+            
+            - **cribl.core**: 276 imperative + 22 declarative modules
+            - **cribl.stream**: 127 imperative + 16 declarative modules
+            - **cribl.edge**: 19 imperative + 1 declarative modules
+            - **cribl.search**: 80 imperative + 10 declarative modules
+            - **cribl.lake**: 11 imperative modules
+            
+            ### Documentation
+            
+            - [README](https://github.com/${{ github.repository }}/blob/main/README.md)
+            - [Build & Install Guide](https://github.com/${{ github.repository }}/blob/main/QUICK_START.md)
+            - [Examples](https://github.com/${{ github.repository }}/tree/main/examples)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create Release (Manual)
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          files: dist/*.tar.gz
+          generate_release_notes: true
+          draft: true
+          body: |
+            ## Cribl Ansible Collections v${{ steps.version.outputs.version }}
+            
+            ⚠️ **This is a draft release created manually. Review and publish when ready.**
+            
+            ### Installation
+            
+            Install all collections:
+            ```bash
+            ansible-galaxy collection install cribl-core-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-stream-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-edge-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-search-${{ steps.version.outputs.version }}.tar.gz
+            ansible-galaxy collection install cribl-lake-${{ steps.version.outputs.version }}.tar.gz
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

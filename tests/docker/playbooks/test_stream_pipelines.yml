@@ -1,0 +1,133 @@
+---
+- name: Test Cribl Stream Pipeline Declarative Module
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+    test_pipeline_id: "test_ansible_pipeline"
+  
+  tasks:
+    - name: Create Cribl authentication session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+      register: cribl_session
+      no_log: true
+
+    - name: "========== PIPELINE CRUD TESTS =========="
+      debug:
+        msg: "Testing Cribl Stream Pipeline declarative module"
+
+    # CREATE - Test pipeline creation
+    - name: Create test pipeline (declarative)
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        conf:
+          description: "Test pipeline created by Ansible"
+          functions: []
+        state: present
+        validate_certs: false
+      register: pipeline_create
+      ignore_errors: true
+
+    - name: Verify pipeline was created
+      assert:
+        that:
+          - pipeline_create.changed == true
+        fail_msg: "Pipeline creation failed or was not changed"
+        success_msg: "✓ Pipeline created successfully"
+      when: pipeline_create is succeeded
+
+    # IDEMPOTENCY TEST - Run create again
+    - name: Create same pipeline again (should be idempotent)
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        conf:
+          description: "Test pipeline created by Ansible"
+          functions: []
+        state: present
+        validate_certs: false
+      register: pipeline_idempotent
+      ignore_errors: true
+      when: pipeline_create is succeeded
+
+    - name: Verify pipeline creation is idempotent
+      assert:
+        that:
+          - pipeline_idempotent.changed == false
+        fail_msg: "Pipeline is NOT idempotent!"
+        success_msg: "✓ Pipeline is idempotent"
+      when: pipeline_create is succeeded and pipeline_idempotent is succeeded
+
+    # READ - Verify pipeline exists
+    - name: Get pipeline details
+      cribl.stream.pipelines_id_get:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        validate_certs: false
+      register: pipeline_get
+      ignore_errors: true
+      when: pipeline_create is succeeded
+
+    - name: Display pipeline info
+      debug:
+        msg: "Pipeline ID: {{ pipeline_get.response.id | default('unknown') }}"
+      when: pipeline_get is succeeded
+
+    # CLEANUP - Delete test pipeline
+    - name: Delete test pipeline
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        state: absent
+        validate_certs: false
+      register: pipeline_delete
+      ignore_errors: true
+      when: pipeline_create is succeeded
+
+    - name: Verify pipeline was deleted
+      assert:
+        that:
+          - pipeline_delete.changed == true
+        fail_msg: "Pipeline deletion failed or was not changed"
+        success_msg: "✓ Pipeline deleted successfully"
+      when: pipeline_delete is succeeded
+
+    # IDEMPOTENCY TEST - Delete again
+    - name: Delete same pipeline again (should be idempotent)
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        state: absent
+        validate_certs: false
+      register: pipeline_delete_idempotent
+      ignore_errors: true
+      when: pipeline_delete is succeeded
+
+    - name: Verify deletion is idempotent
+      assert:
+        that:
+          - pipeline_delete_idempotent.changed == false
+        fail_msg: "Pipeline deletion is NOT idempotent!"
+        success_msg: "✓ Pipeline deletion is idempotent"
+      when: pipeline_delete_idempotent is succeeded
+
+    # SUMMARY
+    - name: Pipeline Test Summary
+      debug:
+        msg:
+          - "========================================="
+          - "Pipeline Declarative Module Test Summary"
+          - "========================================="
+          - "✓ Create: {{ 'PASSED' if (pipeline_create is succeeded) else 'FAILED' }}"
+          - "✓ Idempotency (create): {{ 'PASSED' if (pipeline_idempotent is succeeded and not pipeline_idempotent.changed) else 'FAILED' }}"
+          - "✓ Read: {{ 'PASSED' if (pipeline_get is succeeded) else 'FAILED' }}"
+          - "✓ Delete: {{ 'PASSED' if (pipeline_delete is succeeded) else 'FAILED' }}"
+          - "✓ Idempotency (delete): {{ 'PASSED' if (pipeline_delete_idempotent is succeeded and not pipeline_delete_idempotent.changed) else 'FAILED' }}"
+          - "========================================="
+
