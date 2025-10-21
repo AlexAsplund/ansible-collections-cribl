@@ -89,10 +89,10 @@ make build
 ### Quick Install for Users
 
 ```bash
-# Install from Ansible Galaxy (when published)
-ansible-galaxy collection install cribl.core
-ansible-galaxy collection install cribl.stream
-# ... etc
+wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.14.0/cribl-core-4.14.0.tar.gz
+wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.14.0/cribl-stream-4.14.0.tar.gz
+ansible galaxy collection install cribl-core-4.14.0.tar.gz
+ansible galaxy collection install cribl-stream-4.14.0.tar.gz
 ```
 
 ### Build from Source
