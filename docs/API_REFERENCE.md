@@ -225,7 +225,7 @@ These modules provide idempotent, state-based resource management:
 - name: Ensure user exists
   cribl.core.user:
     base_url: https://cribl.example.com
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: jsmith
     email: jsmith@example.com
     first: John
@@ -257,7 +257,7 @@ These modules provide idempotent, state-based resource management:
 - name: Ensure worker group exists
   cribl.core.worker_group:
     base_url: https://cribl.example.com
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: production
     description: Production environment
     tags: [prod, us-east-1]
@@ -358,7 +358,7 @@ msg:
 - name: Get users
   cribl.core.system_users_get:
     base_url: "{{ cribl_url }}"
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
   register: result
 
 - name: Display user count
@@ -391,7 +391,7 @@ msg:
 - name: Try to get user
   cribl.core.system_users_id_get:
     base_url: "{{ cribl_url }}"
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: unknown_user
   register: result
   ignore_errors: true

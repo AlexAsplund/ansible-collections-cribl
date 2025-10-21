@@ -79,8 +79,7 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Ensure admin users exist
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         email: "{{ item.email }}"
         first: "{{ item.first }}"
@@ -94,8 +93,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Ensure operator users exist
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         email: "{{ item.email }}"
         first: "{{ item.first }}"
@@ -108,8 +106,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Ensure viewer accounts exist
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         email: "{{ item.email }}"
         roles: [viewer]
@@ -130,16 +127,14 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Disable user temporarily
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: vacation_user
         disabled: true
         state: present
 
     - name: Re-enable user
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: vacation_user
         disabled: false
         state: present
@@ -156,14 +151,12 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Get all users
       cribl.core.system_users_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: all_users
 
     - name: Remove test users
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         state: absent
       loop: "{{ all_users.response.items }}"
@@ -185,8 +178,7 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Ensure production groups exist
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         description: "{{ item.description }}"
         tags: "{{ item.tags }}"
@@ -204,8 +196,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Ensure staging groups exist
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item }}"
         description: "Staging environment - {{ item }}"
         tags: [staging]
@@ -216,8 +207,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Ensure development groups exist
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: dev-shared
         description: Shared development environment
         tags: [development]
@@ -235,15 +225,13 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Get source worker group
       cribl.core.master_groups_id_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: prod-us-east
       register: source_group
 
     - name: Create cloned worker group
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: prod-us-east-dr
         description: "DR copy of {{ source_group.response.description }}"
         tags: "{{ source_group.response.tags | default([]) + ['disaster-recovery'] }}"
@@ -265,15 +253,13 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Check system health
       cribl.core.health_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: health
       failed_when: health.response.status != "healthy"
 
     - name: Get system metrics
       cribl.core.system_instance_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: instance
 
     - name: Display system info
@@ -285,8 +271,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Check input status
       cribl.core.system_inputs_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: inputs
 
     - name: Alert if no inputs configured
@@ -297,8 +282,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Check output status
       cribl.core.system_outputs_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: outputs
 
     - name: Alert if no outputs configured
@@ -319,20 +303,17 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Gather system info
       cribl.core.system_instance_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: system
 
     - name: Get worker group status
       cribl.core.master_groups_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: groups
 
     - name: Get user count
       cribl.core.system_users_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: users
 
     - name: Create report
@@ -368,8 +349,7 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Get all pipelines
       cribl.stream.pipelines_get:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
       register: pipelines
 
     - name: Display pipeline names
@@ -399,8 +379,7 @@ Each declarative module has auto-generated example playbooks:
   tasks:
     - name: Ensure all users from inventory exist
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         email: "{{ item.email }}"
         first: "{{ item.first | default(omit) }}"
@@ -411,8 +390,7 @@ Each declarative module has auto-generated example playbooks:
 
     - name: Ensure all worker groups exist
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         description: "{{ item.description }}"
         tags: "{{ item.tags | default([]) }}"
@@ -451,8 +429,7 @@ worker_groups:
   tasks:
     - name: Ensure standard users exist
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
         email: "{{ item.email }}"
         roles: "{{ item.roles }}"
@@ -530,10 +507,16 @@ worker_groups:
     - vault.yml  # Encrypted with ansible-vault
   
   tasks:
+    - name: Authenticate with Cribl
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ vault_cribl_username }}"
+        password: "{{ vault_cribl_password }}"
+      register: cribl_session
+
     - name: Manage users with vaulted credentials
       cribl.core.user:
-        base_url: "{{ cribl_url }}"
-        token: "{{ vault_cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: secure_user
         email: secure@example.com
         roles: [admin]
@@ -584,8 +567,7 @@ ansible-playbook playbook.yml --tags users --check
   tasks:
     - name: Configure production settings
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: production
         description: Production environment
         state: present
@@ -593,8 +575,7 @@ ansible-playbook playbook.yml --tags users --check
 
     - name: Configure dev settings
       cribl.core.worker_group:
-        base_url: "{{ cribl_url }}"
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: development
         description: Development environment
         state: present

@@ -13,7 +13,7 @@ The Cribl Ansible collections include **declarative modules** that provide idemp
 - name: Create user
   cribl.core.system_users_post:
     base_url: "{{ cribl_url }}"
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: jsmith
     email: jsmith@example.com
 ```
@@ -31,7 +31,7 @@ The Cribl Ansible collections include **declarative modules** that provide idemp
 - name: Ensure user exists
   cribl.core.user:
     base_url: "{{ cribl_url }}"
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: jsmith
     email: jsmith@example.com
     state: present
@@ -143,7 +143,7 @@ changed: [localhost]
     - name: Ensure operations user exists
       cribl.core.user:
         base_url: https://cribl.example.com
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: ops_user
         email: ops@example.com
         first: Operations
@@ -156,7 +156,7 @@ changed: [localhost]
     - name: Ensure admin user has correct roles
       cribl.core.user:
         base_url: https://cribl.example.com
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: admin_user
         roles: [admin, user]
         state: present
@@ -165,7 +165,7 @@ changed: [localhost]
     - name: Ensure production worker group exists
       cribl.core.worker_group:
         base_url: https://cribl.example.com
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: production
         description: Production environment
         state: present
@@ -174,7 +174,7 @@ changed: [localhost]
     - name: Ensure test user is absent
       cribl.core.user:
         base_url: https://cribl.example.com
-        token: "{{ cribl_token }}"
+        session: "{{ cribl_session.session }}"
         id: test_user
         state: absent
 ```
@@ -300,7 +300,7 @@ Instead of delete modules, use `state: absent`:
 - name: Ensure all required users exist
   cribl.core.user:
     base_url: "{{ cribl_url }}"
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: "{{ item.id }}"
     email: "{{ item.email }}"
     roles: "{{ item.roles }}"
@@ -316,7 +316,7 @@ Instead of delete modules, use `state: absent`:
 - name: Ensure test resources are cleaned up
   cribl.core.user:
     base_url: "{{ cribl_url }}"
-    token: "{{ token }}"
+    session: "{{ cribl_session.session }}"
     id: "{{ item }}"
     state: absent
   with_items:
