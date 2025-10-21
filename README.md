@@ -223,6 +223,41 @@ See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md
         - test_user_1
         - old_admin
 ```
+## Creating pipelines
+```yml
+- name: Manage Cribl Environment
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - vault.yml  # Encrypted credentials
+  tasks:
+    - name: Create pipeline
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: my_pipeline
+        conf:
+          description: "Comprehensive test pipeline"
+          functions: "{{ my_pipeline_functions }}"
+        state: present
+        validate_certs: false
+      register: test_pipeline_create
+      ignore_errors: true
+      vars:
+        my_pipeline_functions:
+          - id: comment
+            filter: "true"
+            conf:
+              comment: Parse syslog.
+          - id: regex_extract
+            description: Extract raw CSV payload to field 'fl'
+            filter: "true"
+            conf:
+              source: _raw
+              iterations: 100
+              overwrite: true
+              regex: '/^(?<_sourcetype>[^:]+): ?(?<message>.*)/'
+            
+```
 
 **Run safely:**
 
