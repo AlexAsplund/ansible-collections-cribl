@@ -139,7 +139,8 @@ def test_galaxy_yml_format(collections_dir):
         # Check required fields
         assert galaxy_data["namespace"] == "cribl"
         assert galaxy_data["name"] == collection
-        assert galaxy_data["version"] == "1.0.0"
+        # Version is extracted from OpenAPI schema and should be "4.14.0"
+        assert galaxy_data["version"] == "4.14.0"
         assert "MIT" in galaxy_data["license"]
         assert len(galaxy_data["authors"]) > 0
         assert len(galaxy_data["description"]) > 0
