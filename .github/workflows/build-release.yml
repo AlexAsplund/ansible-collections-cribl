@@ -71,6 +71,63 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           python scripts/update_version.py "$VERSION"
       
+      - name: Update README with version info
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SCHEMA_URL="${{ github.event.inputs.schema_url }}"
+          RELEASE_DATE=$(date +"%Y-%m-%d")
+          
+          # Create version info block
+          cat > version_info.txt << 'EOF'
+          ## 📦 Latest Release
+          
+          **Current Version**: `v$VERSION$` | **Released**: $RELEASE_DATE$ | [Download](https://github.com/${{ github.repository }}/releases/tag/v$VERSION$)
+          
+          Generated from [Cribl API Spec $VERSION$]($SCHEMA_URL$)
+          
+          ---
+          
+          EOF
+          
+          # Replace placeholders
+          sed -i "s/\$VERSION\$/${VERSION}/g" version_info.txt
+          sed -i "s|\$SCHEMA_URL\$|${SCHEMA_URL}|g" version_info.txt
+          sed -i "s/\$RELEASE_DATE\$/${RELEASE_DATE}/g" version_info.txt
+          
+          # Remove existing version info if present
+          sed -i '/^## 📦 Latest Release$/,/^---$/d' README.md
+          
+          # Insert after badges section (after line starting with [![Tests])
+          # Find the line number after badges
+          LINE_NUM=$(grep -n "^\[\!\[Tests\]" README.md | cut -d: -f1)
+          
+          if [ -n "$LINE_NUM" ]; then
+            # Insert after badges, before the quote block
+            LINE_NUM=$((LINE_NUM + 2))
+            sed -i "${LINE_NUM}r version_info.txt" README.md
+          else
+            # Fallback: insert at the top after header
+            sed -i "3r version_info.txt" README.md
+          fi
+          
+          # Clean up
+          rm version_info.txt
+          
+          echo "✓ README.md updated with version ${VERSION}"
+      
+      - name: Commit and push README update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --quiet README.md; then
+            echo "No changes to README.md"
+          else
+            git add README.md
+            git commit -m "docs: update README with version ${{ steps.version.outputs.version }} [skip ci]"
+            git push origin main
+            echo "✓ README.md committed and pushed"
+          fi
 
       - name: Build collections
         run: |

@@ -33,35 +33,58 @@ jobs:
       - name: Extract API spec URL and version
         id: extract-version
         run: |
-          # Extract API spec URL using the provided regex
-          SPEC_URL=$(grep -oP 'https://[^"]+/cribl-apidocs-\d+\.\d+\.\d+-[a-f0-9]+\.yml' cribl-docs.html | head -1)
+          # Extract ALL API spec URLs using the provided regex
+          echo "Searching for all Cribl API spec URLs..."
+          SPEC_URLS=$(grep -oP 'https://[^"]+/cribl-apidocs-\d+\.\d+\.\d+-[a-f0-9]+\.yml' cribl-docs.html)
           
-          if [ -z "$SPEC_URL" ]; then
-            echo "Error: Could not find API spec URL in docs page"
+          if [ -z "$SPEC_URLS" ]; then
+            echo "Error: Could not find any API spec URLs in docs page"
             echo "Searching for any apidocs URL..."
             grep -o 'https://[^"]*apidocs[^"]*\.yml' cribl-docs.html || true
             exit 1
           fi
           
-          echo "Found API spec URL: $SPEC_URL"
+          echo "Found API spec URLs:"
+          echo "$SPEC_URLS"
+          echo ""
           
-          # Extract version from URL (format: cribl-apidocs-X.Y.Z-hash.yml)
-          VERSION=$(echo "$SPEC_URL" | grep -oP 'cribl-apidocs-\K\d+\.\d+\.\d+')
-          HASH=$(echo "$SPEC_URL" | grep -oP 'cribl-apidocs-\d+\.\d+\.\d+-\K[a-f0-9]+')
+          # Extract versions and find the highest one
+          HIGHEST_VERSION="0.0.0"
+          HIGHEST_URL=""
           
-          if [ -z "$VERSION" ]; then
-            echo "Error: Could not extract version from URL"
+          while IFS= read -r URL; do
+            # Extract version from URL (format: cribl-apidocs-X.Y.Z-hash.yml)
+            CURRENT_VERSION=$(echo "$URL" | grep -oP 'cribl-apidocs-\K\d+\.\d+\.\d+')
+            
+            if [ -n "$CURRENT_VERSION" ]; then
+              echo "Found version: $CURRENT_VERSION"
+              
+              # Compare versions using sort -V
+              if [ "$(printf '%s\n%s' "$HIGHEST_VERSION" "$CURRENT_VERSION" | sort -V | tail -1)" = "$CURRENT_VERSION" ]; then
+                HIGHEST_VERSION="$CURRENT_VERSION"
+                HIGHEST_URL="$URL"
+              fi
+            fi
+          done <<< "$SPEC_URLS"
+          
+          if [ -z "$HIGHEST_URL" ]; then
+            echo "Error: Could not extract version from any URL"
             exit 1
           fi
           
-          echo "Extracted version: $VERSION"
-          echo "Extracted hash: $HASH"
+          # Extract hash from the highest version URL
+          HASH=$(echo "$HIGHEST_URL" | grep -oP 'cribl-apidocs-\d+\.\d+\.\d+-\K[a-f0-9]+')
+          
+          echo ""
+          echo "✓ Selected highest version: $HIGHEST_VERSION"
+          echo "✓ Spec URL: $HIGHEST_URL"
+          echo "✓ Hash: $HASH"
           
           # Save to outputs
-          echo "spec_url=$SPEC_URL" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "spec_url=$HIGHEST_URL" >> $GITHUB_OUTPUT
+          echo "version=$HIGHEST_VERSION" >> $GITHUB_OUTPUT
           echo "hash=$HASH" >> $GITHUB_OUTPUT
-          echo "full_version=${VERSION}-${HASH}" >> $GITHUB_OUTPUT
+          echo "full_version=${HIGHEST_VERSION}-${HASH}" >> $GITHUB_OUTPUT
       
       - name: Get latest release version
         id: latest-release
