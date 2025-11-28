@@ -34,8 +34,9 @@ Generated from [Cribl API Spec 4.15.0](https://cdn.cribl.io/dl/4.15.0/cribl-apid
 ---
 
 ## Quick Start
+Download the latest [release](https://github.com/AlexAsplund/ansible-collections-cribl/releases) and install
 
-### Installation
+### Build it manually
 
 ```bash
 # Clone the repository
@@ -95,12 +96,12 @@ make build
 ## Installation & Building
 
 ### Quick Install for Users
-
+Download from [releases](https://github.com/AlexAsplund/ansible-collections-cribl/releases) and install:
 ```bash
-wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.14.0/cribl-core-4.14.0.tar.gz
-wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.14.0/cribl-stream-4.14.0.tar.gz
-ansible galaxy collection install cribl-core-4.14.0.tar.gz
-ansible galaxy collection install cribl-stream-4.14.0.tar.gz
+wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.15.0/cribl-core-4.15.0.tar.gz
+wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.15.0/cribl-stream-4.15.0.tar.gz
+ansible galaxy collection install cribl-core-4.15.0.tar.gz
+ansible galaxy collection install cribl-stream-4.15.0.tar.gz
 ```
 
 ### Build from Source
@@ -447,7 +448,7 @@ vars:
 │       ├── collection_manager.py        # Manage collection structure
 │       └── templates.py                 # Code templates
 ├── schemas/
-│   └── cribl-apidocs-4.14.0.yml        # OpenAPI specification
+│   └── cribl-apidocs-4.15.0.yml        # OpenAPI specification
 ├── build/
 │   └── ansible_collections/cribl/       # Generated collections
 │       ├── core/                        # 276 modules
