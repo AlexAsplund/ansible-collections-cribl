@@ -104,7 +104,7 @@ jobs:
           name: Release v${{ steps.version.outputs.version }}
           files: dist/*.tar.gz
           generate_release_notes: true
-          draft: true
+          draft: false
           body: |
             ## Cribl Ansible Collections v${{ steps.version.outputs.version }}
             

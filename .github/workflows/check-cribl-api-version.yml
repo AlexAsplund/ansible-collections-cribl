@@ -1,0 +1,184 @@
+name: Check Cribl API Version
+
+on:
+  schedule:
+    # Run every Wednesday at 10:00 UTC
+    - cron: '0 10 * * 3'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for tags
+      
+      - name: Fetch Cribl docs page
+        id: fetch-docs
+        run: |
+          echo "Fetching Cribl API docs page..."
+          DOCS_URL="https://docs.cribl.io/cribl-as-code/api-reference/control-plane/cribl-core/"
+          curl -s "$DOCS_URL" -o cribl-docs.html
+          
+          if [ ! -s cribl-docs.html ]; then
+            echo "Error: Failed to fetch docs page"
+            exit 1
+          fi
+          
+          echo "✓ Docs page fetched successfully"
+      
+      - name: Extract API spec URL and version
+        id: extract-version
+        run: |
+          # Extract API spec URL using the provided regex
+          SPEC_URL=$(grep -oP 'https://[^"]+/cribl-apidocs-\d+\.\d+\.\d+-[a-f0-9]+\.yml' cribl-docs.html | head -1)
+          
+          if [ -z "$SPEC_URL" ]; then
+            echo "Error: Could not find API spec URL in docs page"
+            echo "Searching for any apidocs URL..."
+            grep -o 'https://[^"]*apidocs[^"]*\.yml' cribl-docs.html || true
+            exit 1
+          fi
+          
+          echo "Found API spec URL: $SPEC_URL"
+          
+          # Extract version from URL (format: cribl-apidocs-X.Y.Z-hash.yml)
+          VERSION=$(echo "$SPEC_URL" | grep -oP 'cribl-apidocs-\K\d+\.\d+\.\d+')
+          HASH=$(echo "$SPEC_URL" | grep -oP 'cribl-apidocs-\d+\.\d+\.\d+-\K[a-f0-9]+')
+          
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from URL"
+            exit 1
+          fi
+          
+          echo "Extracted version: $VERSION"
+          echo "Extracted hash: $HASH"
+          
+          # Save to outputs
+          echo "spec_url=$SPEC_URL" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          echo "full_version=${VERSION}-${HASH}" >> $GITHUB_OUTPUT
+      
+      - name: Get latest release version
+        id: latest-release
+        run: |
+          # Get the latest git tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          
+          # Remove 'v' prefix if present
+          LATEST_VERSION=${LATEST_TAG#v}
+          
+          echo "Latest release version: $LATEST_VERSION"
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Compare versions
+        id: compare
+        run: |
+          CURRENT_VERSION="${{ steps.extract-version.outputs.version }}"
+          LATEST_VERSION="${{ steps.latest-release.outputs.latest_version }}"
+          
+          echo "Current API version: $CURRENT_VERSION"
+          echo "Latest release version: $LATEST_VERSION"
+          
+          # Function to compare semantic versions
+          version_gt() {
+            test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
+          }
+          
+          if version_gt "$CURRENT_VERSION" "$LATEST_VERSION"; then
+            echo "🎉 New version available: $CURRENT_VERSION > $LATEST_VERSION"
+            echo "needs_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "✓ No new version. Current: $CURRENT_VERSION, Latest: $LATEST_VERSION"
+            echo "needs_build=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Download new API spec
+        if: steps.compare.outputs.needs_build == 'true'
+        run: |
+          SPEC_URL="${{ steps.extract-version.outputs.spec_url }}"
+          echo "Downloading new API spec from: $SPEC_URL"
+          
+          # Create schemas directory if it doesn't exist
+          mkdir -p schemas
+          
+          # Download the spec file
+          curl -L "$SPEC_URL" -o "schemas/cribl-api-spec-${{ steps.extract-version.outputs.full_version }}.yml"
+          
+          echo "✓ API spec downloaded successfully"
+      
+      - name: Set up Docker Buildx
+        if: steps.compare.outputs.needs_build == 'true'
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        if: steps.compare.outputs.needs_build == 'true'
+        run: |
+          echo "Building Docker image for generation..."
+          docker build -t ansible-cribl:build .
+      
+      - name: Run generation
+        if: steps.compare.outputs.needs_build == 'true'
+        run: |
+          echo "Running module generation..."
+          docker run -it -v "$PWD:/workspace" ansible-cribl:build make generate
+      
+      - name: Create Pull Request
+        if: steps.compare.outputs.needs_build == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            chore: update to Cribl API version ${{ steps.extract-version.outputs.full_version }}
+            
+            - Updated API spec to version ${{ steps.extract-version.outputs.version }}
+            - Spec hash: ${{ steps.extract-version.outputs.hash }}
+            - Generated from: ${{ steps.extract-version.outputs.spec_url }}
+          branch: update-cribl-api-${{ steps.extract-version.outputs.version }}
+          title: "Update Cribl API to version ${{ steps.extract-version.outputs.version }}"
+          body: |
+            ## 🔄 Automated API Update
+            
+            This PR updates the Cribl API spec and regenerates all modules.
+            
+            ### Details
+            - **New Version**: `${{ steps.extract-version.outputs.version }}`
+            - **Spec Hash**: `${{ steps.extract-version.outputs.hash }}`
+            - **Source URL**: ${{ steps.extract-version.outputs.spec_url }}
+            - **Previous Version**: `${{ steps.latest-release.outputs.latest_version }}`
+            
+            ### Generated Changes
+            This PR includes:
+            - Updated API specification
+            - Regenerated Ansible modules
+            - Updated documentation
+            
+            ### Testing
+            Please review the generated changes and run integration tests before merging.
+            
+            ---
+            _Automatically generated by the check-cribl-api-version workflow_
+          labels: |
+            automated
+            api-update
+          draft: false
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f cribl-docs.html
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Cribl API Version Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Found Version**: ${{ steps.extract-version.outputs.version || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latest Release**: ${{ steps.latest-release.outputs.latest_version || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Needs Build**: ${{ steps.compare.outputs.needs_build || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Spec URL**: ${{ steps.extract-version.outputs.spec_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+
