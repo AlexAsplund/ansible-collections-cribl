@@ -167,8 +167,6 @@ jobs:
             
             **Generated from Cribl OpenAPI Schema**: ${{ github.event.inputs.schema_url }}
             
-            ⚠️ **This is a draft release. Review and publish when ready.**
-            
             ### Installation
             
             Install all collections:
