@@ -72,48 +72,82 @@ jobs:
           python scripts/update_version.py "$VERSION"
       
       - name: Update README with version info
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          SCHEMA_URL: ${{ github.event.inputs.schema_url }}
+          REPO: ${{ github.repository }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SCHEMA_URL="${{ github.event.inputs.schema_url }}"
           RELEASE_DATE=$(date +"%Y-%m-%d")
           
-          # Create version info block
-          cat > version_info.txt << 'EOF'
-          ## 📦 Latest Release
+          echo "Updating README.md with:"
+          echo "  Version: ${VERSION}"
+          echo "  Schema URL: ${SCHEMA_URL}"
+          echo "  Release date: ${RELEASE_DATE}"
+          echo "  Repository: ${REPO}"
           
-          **Current Version**: `v$VERSION$` | **Released**: $RELEASE_DATE$ | [Download](https://github.com/${{ github.repository }}/releases/tag/v$VERSION$)
+          # Create Python script
+          cat > update_readme.py << 'EOF'
+          import os
+          import re
           
-          Generated from [Cribl API Spec $VERSION$]($SCHEMA_URL$)
+          # Get environment variables
+          version = os.environ.get('VERSION', 'unknown')
+          schema_url = os.environ.get('SCHEMA_URL', '')
+          release_date = os.environ.get('RELEASE_DATE', '')
+          repo = os.environ.get('REPO', '')
+          
+          print(f"Python: Processing version {version}")
+          
+          # Read current README
+          with open('README.md', 'r', encoding='utf-8') as f:
+              content = f.read()
+          
+          # Remove existing version block if present
+          pattern = r'## 📦 Latest Release\n\n.*?\n\n---\n\n'
+          content = re.sub(pattern, '', content, flags=re.DOTALL)
+          
+          # Create new version block
+          version_block = f"""## 📦 Latest Release
+          
+          **Current Version**: `v{version}` | **Released**: {release_date} | [Download](https://github.com/{repo}/releases/tag/v{version})
+          
+          Generated from [Cribl API Spec {version}]({schema_url})
           
           ---
           
+          """
+          
+          # Find insertion point (after [![Tests] badge)
+          lines = content.split('\n')
+          insert_idx = 0
+          
+          for i, line in enumerate(lines):
+              if line.startswith('[![Tests]'):
+                  insert_idx = i + 2
+                  break
+          
+          if insert_idx == 0:
+              insert_idx = 2
+          
+          # Insert version block
+          lines.insert(insert_idx, version_block.rstrip('\n'))
+          
+          # Write back
+          with open('README.md', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(lines))
+          
+          print(f"✓ Version block inserted successfully at line {insert_idx}")
           EOF
           
-          # Replace placeholders
-          sed -i "s/\$VERSION\$/${VERSION}/g" version_info.txt
-          sed -i "s|\$SCHEMA_URL\$|${SCHEMA_URL}|g" version_info.txt
-          sed -i "s/\$RELEASE_DATE\$/${RELEASE_DATE}/g" version_info.txt
+          # Run the Python script
+          python3 update_readme.py
+          rm update_readme.py
           
-          # Remove existing version info if present
-          sed -i '/^## 📦 Latest Release$/,/^---$/d' README.md
-          
-          # Insert after badges section (after line starting with [![Tests])
-          # Find the line number after badges
-          LINE_NUM=$(grep -n "^\[\!\[Tests\]" README.md | cut -d: -f1)
-          
-          if [ -n "$LINE_NUM" ]; then
-            # Insert after badges, before the quote block
-            LINE_NUM=$((LINE_NUM + 2))
-            sed -i "${LINE_NUM}r version_info.txt" README.md
-          else
-            # Fallback: insert at the top after header
-            sed -i "3r version_info.txt" README.md
-          fi
-          
-          # Clean up
-          rm version_info.txt
-          
-          echo "✓ README.md updated with version ${VERSION}"
+          echo ""
+          echo "✓ README.md updated successfully"
+          echo ""
+          echo "Preview of updated README:"
+          head -30 README.md
       
       - name: Commit and push README update
         run: |
