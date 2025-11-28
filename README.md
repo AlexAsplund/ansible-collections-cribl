@@ -5,15 +5,14 @@
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](tests/)
 
-> **Declarative, idempotent Ansible collections for managing Cribl Stream, Edge, Search, Lake, and Core via Infrastructure as Code.**
 ## 📦 Latest Release
 
-**Current Version**: `v$VERSION$` | **Released**: $RELEASE_DATE$ | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v$VERSION$)
+**Current Version**: `v4.15.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.15.0)
 
-Generated from [Cribl API Spec $VERSION$]($SCHEMA_URL$)
+Generated from [Cribl API Spec 4.15.0](https://cdn.cribl.io/dl/4.15.0/cribl-apidocs-4.15.0-f275b803.yml)
 
 ---
-
+> **Declarative, idempotent Ansible collections for managing Cribl Stream, Edge, Search, Lake, and Core via Infrastructure as Code.**
 > Automate your Cribl infrastructure with confidence using **state-based management** that only makes changes when needed. Built for DevOps teams who need reliable, repeatable Cribl deployments.
 
 > **This project not affiliated with Cribl and in it's early stages. It is also focused mainly on on-prem environments. So use with caution**
