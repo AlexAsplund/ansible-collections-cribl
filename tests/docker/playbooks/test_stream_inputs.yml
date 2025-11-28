@@ -14,6 +14,7 @@
         base_url: "{{ cribl_url }}"
         username: "{{ cribl_username }}"
         password: "{{ cribl_password }}"
+        validate_certs: false
       register: cribl_session
       no_log: true
 
@@ -30,7 +31,6 @@
         host: "0.0.0.0"
         port: 10080
         state: present
-        validate_certs: false
       register: input_create
       ignore_errors: yes
 
@@ -51,7 +51,6 @@
         host: "0.0.0.0"
         port: 10080
         state: present
-        validate_certs: false
       register: input_idempotent
       ignore_errors: yes
       when: input_create is succeeded
@@ -82,7 +81,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_input_id }}"
         state: absent
-        validate_certs: false
       register: input_delete
       ignore_errors: yes
       when: input_create is succeeded
@@ -101,7 +99,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_input_id }}"
         state: absent
-        validate_certs: false
       register: input_delete_idempotent
       ignore_errors: yes
       when: input_delete is succeeded

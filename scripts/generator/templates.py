@@ -80,15 +80,6 @@ EXAMPLES = r\'\'\'
     token: "{{{{ auth_token }}}}"
     validate_certs: false
     state: present
-
-# Alternative: Direct authentication with username/password
-- name: {summary}
-  cribl.{product}.{module_name}:
-    base_url: https://cribl.example.com
-    username: admin
-    password: secretpassword
-    validate_certs: false
-    state: present
 \'\'\'
 '''
 
@@ -128,45 +119,35 @@ def main():
         argument_spec=dict(
             session=dict(type='dict', required=False),
             base_url=dict(type='str', required=False),
-            username=dict(type='str', required=False),
-            password=dict(type='str', required=False, no_log=True),
             token=dict(type='str', required=False, no_log=True),
             validate_certs=dict(type='bool', default=False),
             timeout=dict(type='int', default=30),
             state=dict(type='str', default='present', choices=['present', 'absent']),
 {arg_spec}
         ),
-        required_one_of=[['session', 'token', 'username']],
-        required_together=[['username', 'password']],
+        required_one_of=[['session', 'token']],
         mutually_exclusive=[['session', 'base_url']],
         supports_check_mode=True,
     )
 
     session = module.params.get('session')
     base_url = module.params.get('base_url')
-    username = module.params.get('username')
-    password = module.params.get('password')
     token = module.params.get('token')
     validate_certs = module.params['validate_certs']
     timeout = module.params['timeout']
     state = module.params['state']
 
     try:
-        # Initialize client with session or credentials
+        # Initialize client with session or token
         if session:
             client = CriblAPIClient(session=session)
         else:
             client = CriblAPIClient(
                 base_url=base_url,
-                username=username,
-                password=password,
                 token=token,
                 validate_certs=validate_certs,
                 timeout=timeout
             )
-            
-            if not token:
-                client.login()
 '''
 
     @staticmethod
@@ -382,16 +363,13 @@ def main():
 
     module = AnsibleModule(
         argument_spec=argument_spec,
-        required_one_of=[['session', 'token', 'username']],
-        required_together=[['username', 'password']],
+        required_one_of=[['session', 'token']],
         mutually_exclusive=[['session', 'base_url']],
         supports_check_mode=True,
     )
 
     session = module.params.get('session')
     base_url = module.params.get('base_url')
-    username = module.params.get('username')
-    password = module.params.get('password')
     token = module.params.get('token')
     validate_certs = module.params['validate_certs']
     timeout = module.params['timeout']
@@ -400,21 +378,16 @@ def main():
     state = module.params['state']
 
     try:
-        # Initialize client with session or credentials
+        # Initialize client with session or token
         if session:
             client = CriblAPIClient(session=session)
         else:
             client = CriblAPIClient(
                 base_url=base_url,
-                username=username,
-                password=password,
                 token=token,
                 validate_certs=validate_certs,
                 timeout=timeout
             )
-            
-            if not token:
-                client.login()
 
         resource = CriblResource(module, client, resource_id, '{endpoint_base}')
 
@@ -422,7 +395,7 @@ def main():
             desired_state = {{'{id_param}': resource_id}}
             # Add any additional parameters from module.params
             for key, value in module.params.items():
-                if key not in ['session', 'base_url', 'username', 'password', 'token', 'validate_certs', 'timeout', 'state', '{id_param}']:
+                if key not in ['session', 'base_url', 'token', 'validate_certs', 'timeout', 'state', '{id_param}']:
                     if value is not None:
                         desired_state[key] = value
             

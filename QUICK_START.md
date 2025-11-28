@@ -71,24 +71,6 @@ make clean-collections          # Remove local collections
 make uninstall-collections      # Remove installed collections
 ```
 
-## Windows Users
-
-Use PowerShell script:
-
-```powershell
-# Generate
-.\scripts\build_and_install.ps1 -Action generate
-
-# Build
-.\scripts\build_and_install.ps1 -Action build
-
-# Install locally
-.\scripts\build_and_install.ps1 -Action install-local
-
-# Install to user directory
-.\scripts\build_and_install.ps1 -Action install-user
-```
-
 ## Simple Playbook Example
 
 ```yaml
@@ -310,14 +292,6 @@ make install-collections
 make clean
 make generate
 make install-local
-```
-
-### Build fails on Windows
-
-```powershell
-# Use PowerShell script instead of Makefile
-.\scripts\build_and_install.ps1 -Action generate
-.\scripts\build_and_install.ps1 -Action build
 ```
 
 ## More Information

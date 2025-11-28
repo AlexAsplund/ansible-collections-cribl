@@ -81,23 +81,10 @@ options:
             - Required if session is not provided.
         type: str
         required: false
-    username:
-        description:
-            - Username for authentication.
-            - Required if session and token are not provided.
-        type: str
-        required: false
-    password:
-        description:
-            - Password for authentication.
-            - Required if session and token are not provided.
-        type: str
-        required: false
-        no_log: true
     token:
         description:
             - Bearer token for authentication.
-            - Can be used instead of username/password.
+            - Can be used instead of session.
         type: str
         required: false
         no_log: true
@@ -115,6 +102,7 @@ notes:
     - This module is part of the cribl.{product} collection for Cribl {product.title()}.
     - For best results, use the auth_session module to create a session and pass it to other modules.
     - Sessions automatically handle token refresh and expiration.
+    - Direct username/password authentication is not supported - use auth_session or token instead.
 \'\'\'
 ''')
 

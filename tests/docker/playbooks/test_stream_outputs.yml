@@ -14,6 +14,7 @@
         base_url: "{{ cribl_url }}"
         username: "{{ cribl_username }}"
         password: "{{ cribl_password }}"
+        validate_certs: false
       register: cribl_session
       no_log: true
 
@@ -28,7 +29,6 @@
         id: "{{ test_output_id }}"
         type: devnull
         state: present
-        validate_certs: false
       register: output_create
       ignore_errors: true
 
@@ -47,7 +47,6 @@
         id: "{{ test_output_id }}"
         type: devnull
         state: present
-        validate_certs: false
       register: output_idempotent
       ignore_errors: true
       when: output_create is succeeded
@@ -78,7 +77,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_output_id }}"
         state: absent
-        validate_certs: false
       register: output_delete
       ignore_errors: true
       when: output_create is succeeded
@@ -97,7 +95,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_output_id }}"
         state: absent
-        validate_certs: false
       register: output_delete_idempotent
       ignore_errors: true
       when: output_delete is succeeded

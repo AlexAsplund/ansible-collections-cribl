@@ -76,20 +76,6 @@
         session: "{{ cribl_session.session }}"
       register: health_check
 
-# Alternative: Direct authentication (not recommended for multiple tasks)
-- name: Direct Authentication Example
-  hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Get users with direct authentication
-      cribl.core.system_users_get:
-        base_url: "https://your-cribl-instance.com"
-        username: admin
-        password: yourpassword
-        validate_certs: false
-      register: users
-      # Note: This authenticates every time, less efficient
-
 # Alternative: Using existing token
 - name: Token Authentication Example
   hosts: localhost

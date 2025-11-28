@@ -8,8 +8,6 @@ This guide explains how to create and publish releases of the Cribl Ansible Coll
 # Linux/Mac
 ./scripts/release.sh 1.0.0 --push
 
-# Windows
-.\scripts\release.ps1 -Version 1.0.0 -Push
 ```
 
 This will:
@@ -79,9 +77,6 @@ Test the build process locally first:
 ```bash
 # Linux/Mac
 ./scripts/release.sh 1.0.0
-
-# Windows
-.\scripts\release.ps1 -Version 1.0.0
 ```
 
 This creates the tarballs in `dist/` without pushing to GitHub.
@@ -108,9 +103,6 @@ Once testing is complete, create the GitHub release:
 ```bash
 # Linux/Mac
 ./scripts/release.sh 1.0.0 --push
-
-# Windows
-.\scripts\release.ps1 -Version 1.0.0 -Push
 ```
 
 This will:
@@ -458,7 +450,6 @@ Future improvements:
 
 - `.github/workflows/build-release.yml` - GitHub Actions workflow
 - `scripts/release.sh` - Linux/Mac release script
-- `scripts/release.ps1` - Windows release script
 - `scripts/update_version.py` - Version update utility
 - `Makefile` - Build commands
 

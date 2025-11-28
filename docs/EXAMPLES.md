@@ -81,6 +81,7 @@ Each declarative module has auto-generated example playbooks:
       cribl.core.user:
         session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
+        password: "{{ vault.cribl_users[item.id].password }}"
         email: "{{ item.email }}"
         first: "{{ item.first }}"
         last: "{{ item.last }}"
@@ -95,6 +96,7 @@ Each declarative module has auto-generated example playbooks:
       cribl.core.user:
         session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
+        password: "{{ vault.cribl_users[item.id].password }}"
         email: "{{ item.email }}"
         first: "{{ item.first }}"
         last: "{{ item.last }}"
@@ -108,6 +110,7 @@ Each declarative module has auto-generated example playbooks:
       cribl.core.user:
         session: "{{ cribl_session.session }}"
         id: "{{ item.id }}"
+        password: "{{ vault.cribl_users[item.id].password }}"
         email: "{{ item.email }}"
         roles: [viewer]
         state: present
@@ -442,7 +445,7 @@ worker_groups:
 
 ## Environment Promotion
 
-### Promote Configuration from Dev to Prod
+### Promote Configuration from Dev to Prod (Multi Session)
 
 ```yaml
 ---
@@ -454,24 +457,39 @@ worker_groups:
     prod_url: https://prod.cribl.example.com
   
   tasks:
+    - name: Create prod session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_prod_url }}"
+        username: "{{ cribl_prod_username }}"
+        password: "{{ cribl_prod_password }}"
+        validate_certs: false
+      register: cribl_prod_session
+      no_log: true
+
+    - name: Create DEV session
+      cribl.core.auth_session:
+        base_url: "{{ cribl_dev_url }}"
+        username: "{{ cribl_dev_username }}"
+        password: "{{ cribl_dev_password }}"
+        validate_certs: false
+      register: cribl_dev_session
+      no_log: true
+
     # Export from Dev
     - name: Get dev worker groups
       cribl.core.master_groups_get:
-        base_url: "{{ dev_url }}"
-        token: "{{ dev_token }}"
+        session: "{{ cribl_dev_session.session }}"
       register: dev_groups
 
     - name: Get dev users
       cribl.core.system_users_get:
-        base_url: "{{ dev_url }}"
-        token: "{{ dev_token }}"
+        session: "{{ cribl_dev_session.session }}"
       register: dev_users
 
     # Import to Prod (only non-sensitive configs)
     - name: Promote worker groups to prod
       cribl.core.worker_group:
-        base_url: "{{ prod_url }}"
-        token: "{{ prod_token }}"
+        session: "{{ cribl_prod_session.session }}"
         id: "{{ item.id }}"
         description: "{{ item.description }} (promoted from dev)"
         state: present

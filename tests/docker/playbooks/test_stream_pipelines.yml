@@ -14,6 +14,7 @@
         base_url: "{{ cribl_url }}"
         username: "{{ cribl_username }}"
         password: "{{ cribl_password }}"
+        validate_certs: false
       register: cribl_session
       no_log: true
 
@@ -30,7 +31,6 @@
           description: "Test pipeline created by Ansible"
           functions: []
         state: present
-        validate_certs: false
       register: pipeline_create
       ignore_errors: true
 
@@ -51,7 +51,6 @@
           description: "Test pipeline created by Ansible"
           functions: []
         state: present
-        validate_certs: false
       register: pipeline_idempotent
       ignore_errors: true
       when: pipeline_create is succeeded
@@ -69,7 +68,6 @@
       cribl.stream.pipelines_id_get:
         session: "{{ cribl_session.session }}"
         id: "{{ test_pipeline_id }}"
-        validate_certs: false
       register: pipeline_get
       ignore_errors: true
       when: pipeline_create is succeeded
@@ -85,7 +83,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_pipeline_id }}"
         state: absent
-        validate_certs: false
       register: pipeline_delete
       ignore_errors: true
       when: pipeline_create is succeeded
@@ -104,7 +101,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_pipeline_id }}"
         state: absent
-        validate_certs: false
       register: pipeline_delete_idempotent
       ignore_errors: true
       when: pipeline_delete is succeeded

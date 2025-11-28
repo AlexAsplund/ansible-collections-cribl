@@ -14,6 +14,7 @@
         base_url: "{{ cribl_url }}"
         username: "{{ cribl_username }}"
         password: "{{ cribl_password }}"
+        validate_certs: false 
       register: cribl_session
       no_log: true
 
@@ -31,7 +32,6 @@
         last: "User"
         roles: ["user"]
         state: present
-        validate_certs: false
       register: user_create
 
     - name: Display user create result
@@ -56,7 +56,6 @@
         last: "User"
         roles: ["user"]
         state: present
-        validate_certs: false
       register: user_idempotent
       when: user_create is succeeded
 
@@ -79,7 +78,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_user_id }}"
         state: absent
-        validate_certs: false
       register: user_delete
       when: user_create is succeeded
 
@@ -102,7 +100,6 @@
         session: "{{ cribl_session.session }}"
         id: "{{ test_user_id }}"
         state: absent
-        validate_certs: false
       register: user_delete_idempotent
       when: user_delete is succeeded
 

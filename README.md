@@ -21,7 +21,7 @@
 - **Complete API Coverage** - 513 auto-generated imperative modules + 49 declarative modules
 - **Docker Testing Included** - Test against real Cribl instances in isolated containers
 - **OpenAPI-Driven** - Regenerate modules for any Cribl version
-- **Well Organized** - 5 focused collections matching [Cribl's official API structure](https://docs.cribl.io/cribl-as-code/api-reference/)
+- **Well Organized** - 5 focused collections matching [Cribl&#39;s official API structure](https://docs.cribl.io/cribl-as-code/api-reference/)
 - **Auto-Generated Tests** - Unit tests and integration playbooks created automatically
 
 ---
@@ -73,6 +73,7 @@ make build
         email: ops@example.com
         first: Operations
         last: User
+        password: "{{ vault.ops_user_password }}" # Password is needed if the user is created
         roles: [user]
         state: present  # Ensures user exists with these attributes
 
@@ -113,15 +114,6 @@ make build
 make install-local          # To ./ansible_collections/
 # OR
 make install-collections    # To ~/.ansible/collections/
-```
-
-**Windows Users:**
-
-```powershell
-# Use PowerShell build script
-.\scripts\build_and_install.ps1 -Action generate
-.\scripts\build_and_install.ps1 -Action build
-.\scripts\build_and_install.ps1 -Action install-local
 ```
 
 See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md](RELEASE.md)** for releasing to GitHub.
@@ -207,6 +199,7 @@ See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md
         id: "{{ item.id }}"
         email: "{{ item.email }}"
         roles: "{{ item.roles }}"
+        password: "{{ vault.password }}" # Password is needed if the user is created
         state: present
       loop:
         - {id: admin_user, email: admin@example.com, roles: [admin]}
@@ -223,7 +216,9 @@ See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md
         - test_user_1
         - old_admin
 ```
+
 ## Creating pipelines
+
 ```yml
 - name: Manage Cribl Environment
   hosts: localhost
@@ -239,7 +234,6 @@ See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md
           description: "Comprehensive test pipeline"
           functions: "{{ my_pipeline_functions }}"
         state: present
-        validate_certs: false
       register: test_pipeline_create
       ignore_errors: true
       vars:
@@ -256,7 +250,7 @@ See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md
               iterations: 100
               overwrite: true
               regex: '/^(?<_sourcetype>[^:]+): ?(?<message>.*)/'
-            
+          
 ```
 
 **Run safely:**
@@ -519,5 +513,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Built for the [Cribl Community](https://cribl.io/community)
-- Uses [Cribl's OpenAPI Specification](https://docs.cribl.io)
+- Uses [Cribl&#39;s OpenAPI Specification](https://docs.cribl.io)
 - Inspired by Infrastructure as Code best practices

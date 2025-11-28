@@ -13,6 +13,7 @@
         base_url: "{{ cribl_url }}"
         username: "{{ cribl_username }}"
         password: "{{ cribl_password }}"
+        validate_certs: false
       register: cribl_session
       no_log: true
 
@@ -28,7 +29,6 @@
             session: "{{ cribl_session.session }}"
             id: test_pipeline_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
 
         - name: Cleanup - Delete test parser
@@ -36,7 +36,6 @@
             session: "{{ cribl_session.session }}"
             id: test_parser_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
 
         - name: Cleanup - Delete test variable
@@ -44,7 +43,6 @@
             session: "{{ cribl_session.session }}"
             id: test_var_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
           register: cleanup_var
           
@@ -57,7 +55,6 @@
             session: "{{ cribl_session.session }}"
             id: test_breaker_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
 
         - name: Cleanup - Delete test grok
@@ -65,7 +62,6 @@
             session: "{{ cribl_session.session }}"
             id: test_grok_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
 
         - name: Cleanup - Delete test regex
@@ -73,7 +69,6 @@
             session: "{{ cribl_session.session }}"
             id: test_regex_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
 
         - name: Cleanup - Delete test schema
@@ -81,7 +76,6 @@
             session: "{{ cribl_session.session }}"
             id: test_schema_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
 
         - name: Cleanup - Delete test parquet schema
@@ -89,7 +83,6 @@
             session: "{{ cribl_session.session }}"
             id: test_parquet_comprehensive
             state: absent
-            validate_certs: false
           ignore_errors: true
       
     - name: Wait a moment for Cribl to process deletions
@@ -117,7 +110,6 @@
                 overwrite: true
                 regex: '/^(?<_sourcetype>[^:]+): ?(?<message>.*)/'
         state: present
-        validate_certs: false
       register: test_pipeline_create
       ignore_errors: true
 
@@ -141,7 +133,6 @@
                 overwrite: true
                 regex: '/^(?<_sourcetype>[^:]+): ?(?<message>.*)/'
         state: present
-        validate_certs: false
       register: test_pipeline_idempotent
       ignore_errors: true
       when: test_pipeline_create is succeeded
@@ -151,7 +142,6 @@
         session: "{{ cribl_session.session }}"
         id: test_pipeline_comprehensive
         state: absent
-        validate_certs: false
       register: test_pipeline_delete
       ignore_errors: true
       when: test_pipeline_create is succeeded
@@ -164,7 +154,6 @@
         type: csv
         description: "Test CSV parser"
         state: present
-        validate_certs: false
       register: test_parser_create
       ignore_errors: true
 
@@ -175,7 +164,6 @@
         type: csv
         description: "Test CSV parser"
         state: present
-        validate_certs: false
       register: test_parser_idempotent
       ignore_errors: true
       when: test_parser_create is succeeded
@@ -185,7 +173,6 @@
         session: "{{ cribl_session.session }}"
         id: test_parser_comprehensive
         state: absent
-        validate_certs: false
       register: test_parser_delete
       ignore_errors: true
       when: test_parser_create is succeeded
@@ -200,7 +187,6 @@
         value: "test_value"
         description: "Test variable"
         state: present
-        validate_certs: false
       register: test_var_create
       ignore_errors: true
       
@@ -216,7 +202,6 @@
         value: "test_value"
         description: "Test variable"
         state: present
-        validate_certs: false
       register: test_var_idempotent
       ignore_errors: true
       when: test_var_create is succeeded
@@ -226,7 +211,6 @@
         session: "{{ cribl_session.session }}"
         id: test_var_comprehensive
         state: absent
-        validate_certs: false
       register: test_var_delete
       ignore_errors: true
       when: test_var_create is succeeded
@@ -239,7 +223,6 @@
         schema: '{"type": "object", "properties": {"field1": {"type": "string"}}}'
         description: "Test schema"
         state: present
-        validate_certs: false
       register: test_schema_create
       ignore_errors: true
 
@@ -250,7 +233,6 @@
         schema: '{"type": "object", "properties": {"field1": {"type": "string"}}}'
         description: "Test schema"
         state: present
-        validate_certs: false
       register: test_schema_idempotent
       ignore_errors: true
       when: test_schema_create is succeeded
@@ -260,7 +242,6 @@
         session: "{{ cribl_session.session }}"
         id: test_schema_comprehensive
         state: absent
-        validate_certs: false
       register: test_schema_delete
       ignore_errors: true
       when: test_schema_create is succeeded
@@ -273,7 +254,6 @@
         content: "TEST_PATTERN %{WORD:test_field}"
         size: 35
         state: present
-        validate_certs: false
       register: test_grok_create
       ignore_errors: true
 
@@ -284,7 +264,6 @@
         content: "TEST_PATTERN %{WORD:test_field}"
         size: 35
         state: present
-        validate_certs: false
       register: test_grok_idempotent
       ignore_errors: true
       when: test_grok_create is succeeded
@@ -294,7 +273,6 @@
         session: "{{ cribl_session.session }}"
         id: test_grok_comprehensive
         state: absent
-        validate_certs: false
       register: test_grok_delete
       ignore_errors: true
       when: test_grok_create is succeeded
@@ -308,7 +286,6 @@
         regex: "/test.*pattern/"
         description: "Test regex pattern"
         state: present
-        validate_certs: false
       register: test_regex_create
       ignore_errors: true
 
@@ -319,7 +296,6 @@
         regex: "/test.*pattern?/"
         description: "Test regex pattern"
         state: present
-        validate_certs: false
       register: test_regex_idempotent
       ignore_errors: true
       when: test_regex_create is succeeded
@@ -329,7 +305,6 @@
         session: "{{ cribl_session.session }}"
         id: test_regex_comprehensive
         state: absent
-        validate_certs: false
       register: test_regex_delete
       ignore_errors: true
       when: test_regex_create is succeeded
@@ -340,7 +315,6 @@
         session: "{{ cribl_session.session }}"
         id: test_breaker_comprehensive
         state: present
-        validate_certs: false
       register: test_breaker_create
       ignore_errors: true
 
@@ -349,7 +323,6 @@
         session: "{{ cribl_session.session }}"
         id: test_breaker_comprehensive
         state: present
-        validate_certs: false
       register: test_breaker_idempotent
       ignore_errors: true
       when: test_breaker_create is succeeded
@@ -359,7 +332,6 @@
         session: "{{ cribl_session.session }}"
         id: test_breaker_comprehensive
         state: absent
-        validate_certs: false
       register: test_breaker_delete
       ignore_errors: true
       when: test_breaker_create is succeeded

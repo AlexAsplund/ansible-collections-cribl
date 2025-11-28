@@ -258,8 +258,6 @@ def create_declarative_module_args():
     return dict(
         session=dict(type='dict', required=False),
         base_url=dict(type='str', required=False),
-        username=dict(type='str', required=False),
-        password=dict(type='str', required=False, no_log=True),
         token=dict(type='str', required=False, no_log=True),
         validate_certs=dict(type='bool', default=False),
         timeout=dict(type='int', default=30),
