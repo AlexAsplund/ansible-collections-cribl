@@ -12,13 +12,6 @@
 Generated from [Cribl API Spec 4.15.0](https://cdn.cribl.io/dl/4.15.0/cribl-apidocs-4.15.0-f275b803.yml)
 
 ---
-> **Declarative, idempotent Ansible collections for managing Cribl Stream, Edge, Search, Lake, and Core via Infrastructure as Code.**
-> Automate your Cribl infrastructure with confidence using **state-based management** that only makes changes when needed. Built for DevOps teams who need reliable, repeatable Cribl deployments.
-
-> **This project not affiliated with Cribl and in it's early stages. It is also focused mainly on on-prem environments. So use with caution**
-
----
-
 ## Why Use This?
 
 - **Auto-Generated Declarative Modules** - 49+ declarative modules automatically generated from CRUD detection
