@@ -2,7 +2,7 @@
 
 # Path to OpenAPI specification file
 # Version is automatically detected from the schema's info.version field
-spec_file: schemas/cribl-apidocs-4.14.0-837595d5.yml
+spec_file: schemas/cribl-apidocs-4.15.0-f275b803.yml
 
 # Base output directory for generated collections
 output_dir: build/ansible_collections/cribl

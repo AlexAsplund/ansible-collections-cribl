@@ -22,6 +22,8 @@ Generated from [Cribl API Spec 4.15.0](https://cdn.cribl.io/dl/4.15.0/cribl-apid
 ## Why Use This?
 
 - **Auto-Generated Declarative Modules** - 49+ declarative modules automatically generated from CRUD detection
+- **Cribl Cloud OAuth2 Support** - NEW! Authenticate with Cribl Cloud using client_id/client_secret
+- **Worker Group Support** - NEW! Manage resources in specific worker groups with a simple `worker_group` parameter
 - **53 Example Playbooks** - Ready-to-use examples auto-generated for all declarative modules
 - **Declarative & Idempotent** - Define desired state, run playbooks repeatedly without side effects
 - **Production Safe** - Built-in check mode (`--check`) and diff support (`--diff`)
@@ -90,6 +92,72 @@ make build
 ```
 
 **Result:** Session authenticates once, user is created on first run, no changes on subsequent runs.
+
+---
+
+## Cribl Cloud OAuth2 Authentication
+
+Authenticate with Cribl Cloud using OAuth2 Client Credentials!
+
+```yaml
+# Cribl Cloud with OAuth2
+- name: Authenticate with Cribl Cloud
+  cribl.core.auth_session:
+    base_url: https://main-myorg.cribl.cloud
+    client_id: "{{ cribl_client_id }}"
+    client_secret: "{{ cribl_client_secret }}"
+    validate_certs: true
+  register: session
+  no_log: true
+
+# Traditional on-prem authentication still works
+- name: Authenticate with on-prem
+  cribl.core.auth_session:
+    base_url: https://cribl.local
+    username: admin
+    password: "{{ password }}"
+  register: session
+  no_log: true
+```
+
+**Benefits:**
+- ✅ Automatic auth method detection
+- ✅ Secure OAuth2 Client Credentials flow
+- ✅ Automatic token refresh
+- ✅ Perfect for Cribl Cloud
+- ✅ Backward compatible with username/password
+
+**See:** [Cribl Cloud OAuth2 Documentation](docs/CRIBL_CLOUD_AUTH.md) | [Examples](examples/cribl_cloud_oauth2_example.yml)
+
+### Worker Group Support
+
+All declarative modules now support the `worker_group` parameter for managing resources in specific worker groups!
+
+```yaml
+# Global pipeline (no worker group)
+- name: Create global pipeline
+  cribl.stream.pipeline:
+    session: "{{ cribl_session.session }}"
+    id: my_pipeline
+    state: present
+
+# Worker group-specific pipeline
+- name: Create pipeline in production worker group
+  cribl.stream.pipeline:
+    session: "{{ cribl_session.session }}"
+    id: my_pipeline
+    worker_group: production  # <-- NEW!
+    state: present
+```
+
+**Benefits:**
+- ✅ Same module for global and worker group resources
+- ✅ Different configs per environment (prod/staging/dev)
+- ✅ Multi-tenant isolation
+- ✅ Geographic distribution
+- ✅ Canary/blue-green deployments
+
+**See:** [Worker Group Documentation](docs/WORKER_GROUPS.md) | [Examples](examples/worker_group_declarative_example.yml)
 
 ---
 
@@ -511,10 +579,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [X] Auto-generated unit tests and integration playbooks
 - [X] Docker integration testing
 - [X] Check mode and diff support
-- [ ] Ansible Galaxy publication
-- [ ] CI/CD pipeline examples
-- [ ] Enhanced declarative base classes
-- [ ] Terraform integration examples
+- [X] Cribl Cloud Support
+- [X] Smart declarative functions targeting worker groups
 
 ---
 

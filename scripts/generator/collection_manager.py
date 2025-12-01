@@ -322,16 +322,22 @@ class CriblSession:
     """Represents a Cribl API session with automatic token refresh."""
     
     def __init__(self, base_url: str, token: str, username: Optional[str] = None,
-                 password: Optional[str] = None, validate_certs: bool = False,
-                 timeout: int = 30, token_expiry: Optional[float] = None):
+                 password: Optional[str] = None, client_id: Optional[str] = None,
+                 client_secret: Optional[str] = None, oauth_token_url: Optional[str] = None,
+                 validate_certs: bool = False, timeout: int = 30, 
+                 token_expiry: Optional[float] = None, auth_type: str = 'password'):
         """Initialize session from existing credentials or token."""
         self.base_url = base_url.rstrip('/')
         self.token = token
         self.username = username
         self.password = password
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.oauth_token_url = oauth_token_url
         self.validate_certs = validate_certs
         self.timeout = timeout
         self.token_expiry = token_expiry or (time.time() + 3600)  # Default 1 hour
+        self.auth_type = auth_type  # 'password' or 'oauth2'
         
     def to_dict(self) -> Dict[str, Any]:
         """Export session for passing to other modules."""
@@ -340,9 +346,13 @@ class CriblSession:
             'token': self.token,
             'username': self.username,
             'password': self.password,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+            'oauth_token_url': self.oauth_token_url,
             'validate_certs': self.validate_certs,
             'timeout': self.timeout,
-            'token_expiry': self.token_expiry
+            'token_expiry': self.token_expiry,
+            'auth_type': self.auth_type
         }
     
     @classmethod
@@ -353,9 +363,13 @@ class CriblSession:
             token=data['token'],
             username=data.get('username'),
             password=data.get('password'),
+            client_id=data.get('client_id'),
+            client_secret=data.get('client_secret'),
+            oauth_token_url=data.get('oauth_token_url'),
             validate_certs=data.get('validate_certs', False),
             timeout=data.get('timeout', 30),
-            token_expiry=data.get('token_expiry')
+            token_expiry=data.get('token_expiry'),
+            auth_type=data.get('auth_type', 'password')
         )
     
     def is_expired(self) -> bool:
@@ -367,16 +381,24 @@ class CriblAPIClient:
     """Client for interacting with the Cribl API with automatic session management."""
 
     def __init__(self, base_url: str = None, username: Optional[str] = None,
-                 password: Optional[str] = None, token: Optional[str] = None,
-                 validate_certs: bool = False, timeout: int = 30,
+                 password: Optional[str] = None, client_id: Optional[str] = None,
+                 client_secret: Optional[str] = None, oauth_token_url: Optional[str] = None,
+                 token: Optional[str] = None, validate_certs: bool = False, timeout: int = 30,
                  session: Optional[Dict[str, Any]] = None):
         """
         Initialize client with credentials or existing session.
         
+        Supports two authentication methods:
+        1. Username/Password (traditional Cribl auth)
+        2. OAuth2 Client Credentials (Cribl Cloud)
+        
         Args:
-            base_url: Base URL of Cribl instance
-            username: Username for auth
-            password: Password for auth
+            base_url: Base URL of Cribl instance (e.g., https://main-myorg.cribl.cloud)
+            username: Username for traditional auth
+            password: Password for traditional auth
+            client_id: OAuth2 client ID for Cribl Cloud
+            client_secret: OAuth2 client secret for Cribl Cloud
+            oauth_token_url: OAuth2 token endpoint (default: https://login.cribl.cloud/oauth/token)
             token: Existing bearer token
             validate_certs: Whether to validate SSL certificates
             timeout: Request timeout in seconds
@@ -388,9 +410,13 @@ class CriblAPIClient:
             self.base_url = self.session_obj.base_url
             self.username = self.session_obj.username
             self.password = self.session_obj.password
+            self.client_id = self.session_obj.client_id
+            self.client_secret = self.session_obj.client_secret
+            self.oauth_token_url = self.session_obj.oauth_token_url
             self.token = self.session_obj.token
             self.validate_certs = self.session_obj.validate_certs
             self.timeout = self.session_obj.timeout
+            self.auth_type = self.session_obj.auth_type
         else:
             # Initialize from credentials
             if not base_url:
@@ -398,10 +424,19 @@ class CriblAPIClient:
             self.base_url = base_url.rstrip('/')
             self.username = username
             self.password = password
+            self.client_id = client_id
+            self.client_secret = client_secret
+            self.oauth_token_url = oauth_token_url or 'https://login.cribl.cloud/oauth/token'
             self.token = token
             self.validate_certs = validate_certs
             self.timeout = timeout
             self.session_obj = None
+            
+            # Auto-detect auth type
+            if client_id and client_secret:
+                self.auth_type = 'oauth2'
+            else:
+                self.auth_type = 'password'
         
         self.http_session = requests.Session()
         
@@ -414,8 +449,16 @@ class CriblAPIClient:
         if self.token and self.session_obj and not self.session_obj.is_expired():
             return self.session_obj
         
+        # Route to appropriate auth method
+        if self.auth_type == 'oauth2':
+            return self.login_oauth2()
+        else:
+            return self.login_password()
+    
+    def login_password(self) -> CriblSession:
+        """Traditional username/password authentication."""
         if not self.username or not self.password:
-            raise CriblAPIError("Username and password required for login")
+            raise CriblAPIError("Username and password required for password authentication")
         
         url = f"{self.base_url}/api/v1/auth/login"
         response = self.http_session.post(
@@ -442,7 +485,55 @@ class CriblAPIClient:
             password=self.password,
             validate_certs=self.validate_certs,
             timeout=self.timeout,
-            token_expiry=token_expiry
+            token_expiry=token_expiry,
+            auth_type='password'
+        )
+        
+        return self.session_obj
+    
+    def login_oauth2(self) -> CriblSession:
+        """OAuth2 Client Credentials authentication for Cribl Cloud."""
+        if not self.client_id or not self.client_secret:
+            raise CriblAPIError("client_id and client_secret required for OAuth2 authentication")
+        
+        # OAuth2 token request
+        response = self.http_session.post(
+            self.oauth_token_url,
+            json={
+                "grant_type": "client_credentials",
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "audience": "https://api.cribl.cloud"
+            },
+            headers={"Content-Type": "application/json"},
+            verify=self.validate_certs,
+            timeout=self.timeout
+        )
+        
+        if response.status_code != 200:
+            raise CriblAPIError(f"OAuth2 authentication failed: {response.status_code} {response.text}")
+        
+        data = response.json()
+        self.token = data.get("access_token")
+        
+        if not self.token:
+            raise CriblAPIError("OAuth2 response did not contain access_token")
+        
+        # Calculate token expiry from expires_in (typically in seconds)
+        expires_in = data.get("expires_in", 3600)
+        token_expiry = time.time() + expires_in
+        
+        # Create session object
+        self.session_obj = CriblSession(
+            base_url=self.base_url,
+            token=self.token,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            oauth_token_url=self.oauth_token_url,
+            validate_certs=self.validate_certs,
+            timeout=self.timeout,
+            token_expiry=token_expiry,
+            auth_type='oauth2'
         )
         
         return self.session_obj

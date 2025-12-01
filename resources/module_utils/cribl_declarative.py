@@ -19,7 +19,7 @@ from .cribl_api import CriblAPIClient, CriblAPIError
 class CriblResource:
     """Base class for declarative Cribl resources."""
     
-    def __init__(self, module, client, resource_id, endpoint_base):
+    def __init__(self, module, client, resource_id, endpoint_base, worker_group=None):
         """
         Initialize a declarative Cribl resource.
         
@@ -27,12 +27,23 @@ class CriblResource:
             module: Ansible module instance
             client: CriblAPIClient instance
             resource_id: Resource identifier
-            endpoint_base: Base API endpoint (e.g., '/system/users')
+            endpoint_base: Base API endpoint (e.g., '/system/users', '/pipelines')
+            worker_group: Optional worker group ID for group-specific resources
         """
         self.module = module
         self.client = client
         self.resource_id = resource_id
-        self.endpoint_base = endpoint_base.rstrip('/')
+        self.worker_group = worker_group
+        
+        # Prefix endpoint with worker group if specified
+        # This transforms endpoints like /pipelines to /m/{worker_group}/pipelines
+        if worker_group:
+            # Ensure endpoint_base starts with /
+            if not endpoint_base.startswith('/'):
+                endpoint_base = '/' + endpoint_base
+            self.endpoint_base = f"/m/{worker_group}{endpoint_base}".rstrip('/')
+        else:
+            self.endpoint_base = endpoint_base.rstrip('/')
     
     def get_current_state(self):
         """
@@ -262,5 +273,6 @@ def create_declarative_module_args():
         validate_certs=dict(type='bool', default=False),
         timeout=dict(type='int', default=30),
         state=dict(type='str', default='present', choices=['present', 'absent']),
+        worker_group=dict(type='str', required=False),
     )
 

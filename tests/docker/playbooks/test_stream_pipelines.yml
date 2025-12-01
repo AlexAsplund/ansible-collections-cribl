@@ -6,17 +6,29 @@
     cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
     cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
     cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
-    test_pipeline_id: "test_ansible_pipeline"
+    cribl_client_id: "{{ lookup('env', 'CRIBL_CLIENT_ID') | default(false) }}"
+    cribl_client_secret: "{{ lookup('env', 'CRIBL_CLIENT_SECRET') | default(false) }}"
   
   tasks:
-    - name: Create Cribl authentication session
+    - name: Create Cribl authentication session (username/password)
       cribl.core.auth_session:
         base_url: "{{ cribl_url }}"
         username: "{{ cribl_username }}"
         password: "{{ cribl_password }}"
-        validate_certs: false
+        validate_certs: false 
       register: cribl_session
       no_log: true
+      when: cribl_client_id is string== false
+    
+    - name: Create Cribl authentication session (cribl.cloud)
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        client_id: "{{ cribl_client_id }}"
+        client_secret: "{{ cribl_client_secret }}"
+        validate_certs: true
+      register: cribl_session
+      no_log: true
+      when: cribl_client_id is string
 
     - name: "========== PIPELINE CRUD TESTS =========="
       debug:

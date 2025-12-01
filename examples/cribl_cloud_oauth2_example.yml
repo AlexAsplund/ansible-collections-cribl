@@ -1,0 +1,211 @@
+---
+# Cribl Cloud OAuth2 Authentication Example
+#
+# This playbook demonstrates how to authenticate with Cribl Cloud using
+# OAuth2 Client Credentials (client_id and client_secret).
+#
+# Prerequisites:
+# 1. Cribl Cloud account
+# 2. API Credentials created in Cribl Cloud (Settings > API Credentials)
+# 3. Store credentials securely (use Ansible Vault)
+
+- name: Cribl Cloud OAuth2 Authentication Demo
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Cribl Cloud organization URL
+    cribl_cloud_url: "{{ lookup('env', 'CRIBL_CLOUD_URL') | default('https://main-myorg.cribl.cloud', true) }}"
+    
+    # OAuth2 credentials (should be vaulted in production!)
+    cribl_client_id: "{{ lookup('env', 'CRIBL_CLIENT_ID') }}"
+    cribl_client_secret: "{{ lookup('env', 'CRIBL_CLIENT_SECRET') }}"
+
+  tasks:
+    # ============================================================================
+    # AUTHENTICATION METHODS
+    # ============================================================================
+    
+    - name: "========== CRIBL CLOUD OAUTH2 AUTHENTICATION =========="
+      debug:
+        msg: "Authenticating with Cribl Cloud using OAuth2 Client Credentials"
+
+    - name: Authenticate with Cribl Cloud using OAuth2
+      cribl.core.auth_session:
+        base_url: "{{ cribl_cloud_url }}"
+        client_id: "{{ cribl_client_id }}"
+        client_secret: "{{ cribl_client_secret }}"
+        validate_certs: true  # Cribl Cloud uses valid SSL certs
+      register: cribl_cloud_session
+      no_log: true  # Hide sensitive data in logs
+
+    - name: Display authentication success
+      debug:
+        msg:
+          - "✓ Successfully authenticated with Cribl Cloud"
+          - "  Auth Type: {{ cribl_cloud_session.auth_type }}"
+          - "  Base URL: {{ cribl_cloud_session.session.base_url }}"
+          - "  Token expires: {{ cribl_cloud_session.session.token_expiry | int }}"
+
+    # ============================================================================
+    # USING THE SESSION
+    # ============================================================================
+    
+    - name: "========== USING CRIBL CLOUD SESSION =========="
+      debug:
+        msg: "Using authenticated session to interact with Cribl Cloud"
+
+    - name: Get system information
+      cribl.core.system_instance_get:
+        session: "{{ cribl_cloud_session.session }}"
+      register: instance_info
+
+    - name: Display instance information
+      debug:
+        msg:
+          - "Instance Mode: {{ instance_info.response.items[0].mode | default('unknown') }}"
+          - "Version: {{ instance_info.response.items[0].version | default('unknown') }}"
+
+    - name: List worker groups
+      cribl.core.master_groups_get:
+        session: "{{ cribl_cloud_session.session }}"
+      register: worker_groups
+      ignore_errors: true
+
+    - name: Display worker groups
+      debug:
+        msg: "Found {{ worker_groups.response.count | default(0) }} worker groups"
+      when: worker_groups is succeeded
+
+    - name: List users
+      cribl.core.system_users_get:
+        session: "{{ cribl_cloud_session.session }}"
+      register: users
+
+    - name: Display users
+      debug:
+        msg: "Found {{ users.response.count }} users in Cribl Cloud"
+
+    # ============================================================================
+    # WORKER GROUP SPECIFIC OPERATIONS
+    # ============================================================================
+    
+    - name: "========== WORKER GROUP OPERATIONS =========="
+      debug:
+        msg: "Managing resources in specific worker groups"
+      when: worker_groups is succeeded and worker_groups.response.count > 0
+
+    - name: Get first worker group name
+      set_fact:
+        first_worker_group: "{{ worker_groups.response.items[0].id }}"
+      when: worker_groups is succeeded and worker_groups.response.count > 0
+
+    - name: List pipelines in worker group
+      cribl.stream.pipeline:
+        session: "{{ cribl_cloud_session.session }}"
+        worker_group: "{{ first_worker_group }}"
+        id: example_pipeline
+        state: present
+      register: pipeline_result
+      when: first_worker_group is defined
+      ignore_errors: true
+
+    - name: Display pipeline operation result
+      debug:
+        msg: "Pipeline operation: {{ 'SUCCESS' if pipeline_result is succeeded else 'SKIPPED' }}"
+      when: first_worker_group is defined
+
+    # ============================================================================
+    # TOKEN REFRESH (AUTOMATIC)
+    # ============================================================================
+    
+    - name: "========== TOKEN REFRESH =========="
+      debug:
+        msg:
+          - "The OAuth2 token is automatically refreshed when it expires"
+          - "You can continue using the same session throughout your playbook"
+          - "No need to manually refresh - it's handled by the API client"
+
+    # ============================================================================
+    # COMPARISON: TRADITIONAL AUTH
+    # ============================================================================
+    
+    - name: "========== TRADITIONAL AUTH (FOR COMPARISON) =========="
+      debug:
+        msg: "For on-prem Cribl instances, use username/password authentication"
+
+    - name: Example of traditional auth (commented out)
+      debug:
+        msg:
+          - "For on-prem or non-OAuth2 Cribl instances:"
+          - "cribl.core.auth_session:"
+          - "  base_url: https://cribl.example.com"
+          - "  username: admin"
+          - "  password: your_password"
+          - "  validate_certs: false"
+
+    # ============================================================================
+    # SECURITY BEST PRACTICES
+    # ============================================================================
+    
+    - name: "========== SECURITY BEST PRACTICES =========="
+      debug:
+        msg:
+          - "Security Best Practices:"
+          - ""
+          - "1. Store credentials in Ansible Vault:"
+          - "   ansible-vault encrypt_string 'your_client_id' --name 'cribl_client_id'"
+          - "   ansible-vault encrypt_string 'your_client_secret' --name 'cribl_client_secret'"
+          - ""
+          - "2. Use environment variables or vault files:"
+          - "   export CRIBL_CLIENT_ID='your_client_id'"
+          - "   export CRIBL_CLIENT_SECRET='your_client_secret'"
+          - ""
+          - "3. Always use no_log: true for authentication tasks"
+          - ""
+          - "4. Limit API credential scope in Cribl Cloud"
+          - ""
+          - "5. Rotate credentials regularly"
+          - ""
+          - "6. Use validate_certs: true for production (Cribl Cloud)"
+
+# ============================================================================
+# VAULT FILE EXAMPLE
+# ============================================================================
+#
+# Create vault file: vault.yml
+# ---
+# vault_cribl_client_id: your_client_id_here
+# vault_cribl_client_secret: your_client_secret_here
+#
+# Encrypt:
+# ansible-vault encrypt vault.yml
+#
+# Use in playbook:
+# - name: Load vault
+#   include_vars: vault.yml
+#
+# - name: Authenticate
+#   cribl.core.auth_session:
+#     base_url: "{{ cribl_cloud_url }}"
+#     client_id: "{{ vault_cribl_client_id }}"
+#     client_secret: "{{ vault_cribl_client_secret }}"
+#   register: session
+#   no_log: true
+
+# ============================================================================
+# GROUP/ROLE VARS EXAMPLE
+# ============================================================================
+#
+# group_vars/cribl_cloud/vars.yml:
+# ---
+# cribl_cloud_url: https://main-myorg.cribl.cloud
+#
+# group_vars/cribl_cloud/vault.yml (encrypted):
+# ---
+# cribl_client_id: !vault |
+#           $ANSIBLE_VAULT;1.1;AES256
+#           ...
+# cribl_client_secret: !vault |
+#           $ANSIBLE_VAULT;1.1;AES256
+#           ...
+

@@ -98,3 +98,5 @@ dmypy.json
 *.ps1
 .cursor/*
 .cursor/rules/*
+schemas/
+context/

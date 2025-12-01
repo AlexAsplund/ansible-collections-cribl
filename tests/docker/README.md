@@ -33,6 +33,10 @@ All core tests passing (4/4)
 - `test_stream_vars_declarative.yml` - Variable management
 - `test_core_users_declarative.yml` - User declarative module
 
+**Worker Group Support (NEW)**:
+- `test_worker_group_declarative.yml` - Comprehensive worker group tests (pipelines, inputs, outputs, vars)
+- `test_worker_group_resources.yml` - Multi-resource worker group support (11 resource types)
+
 ## Features
 
 - **Auto-build**: Modules built on container startup

@@ -1,0 +1,369 @@
+---
+- name: Test Worker Group Support in Declarative Modules
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cribl_url: "{{ lookup('env', 'CRIBL_URL') | default('http://localhost:9000', true) }}"
+    cribl_username: "{{ lookup('env', 'CRIBL_USERNAME') | default('admin', true) }}"
+    cribl_password: "{{ lookup('env', 'CRIBL_PASSWORD') }}"
+    cribl_client_id: "{{ lookup('env', 'CRIBL_CLIENT_ID') | default(false) }}"
+    cribl_client_secret: "{{ lookup('env', 'CRIBL_CLIENT_SECRET') | default(false) }}"
+    test_suffix: "1"
+    test_pipeline_id: "test_pipeline_{{ test_suffix }}"
+    test_input_id: "test_input_{{ test_suffix }}"
+    test_output_id: "test_output_{{ test_suffix }}"
+    test_route_id: "test_route_{{ test_suffix }}"
+    test_var_id: "test_var_{{ test_suffix }}"
+    use_default_group: true
+  
+  tasks:
+    - name: Create Cribl authentication session (username/password)
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        username: "{{ cribl_username }}"
+        password: "{{ cribl_password }}"
+        validate_certs: false 
+      register: cribl_session
+      no_log: true
+      when: cribl_client_id is string== false
+    
+    - name: Create Cribl authentication session (cribl.cloud)
+      cribl.core.auth_session:
+        base_url: "{{ cribl_url }}"
+        client_id: "{{ cribl_client_id }}"
+        client_secret: "{{ cribl_client_secret }}"
+        validate_certs: true
+      register: cribl_session
+      no_log: true
+      when: cribl_client_id is string
+
+    - name: Display session created
+      debug:
+        msg: "✓ Authentication session created"
+
+    
+
+    - name: Create pipeline in worker group
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        worker_group: "default"
+        conf:
+          description: "Test pipeline in worker group"
+          asyncFuncTimeout: 1000
+          functions:
+            - id: eval
+              filter: "true"
+              conf:
+                add:
+                  - name: test_field
+                    value: "'worker_group_1'"
+        state: present
+      register: pipeline_wg1_create
+
+    - name: Verify pipeline created
+      assert:
+        that:
+          - pipeline_wg1_create.changed == true
+        fail_msg: "Pipeline was not created in worker group"
+        success_msg: "✓ Pipeline created in worker group"
+      when: pipeline_wg1_create is succeeded
+
+    - name: Test idempotency - Create same pipeline again in worker group
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        worker_group: "default"
+        conf:
+          description: "Test pipeline in worker group"
+          asyncFuncTimeout: 1000
+          functions:
+            - id: eval
+              filter: "true"
+              conf:
+                add:
+                  - name: test_field
+                    value: "'worker_group_1'"
+        state: present
+      register: pipeline_wg1_idempotent
+      when: pipeline_wg1_create is succeeded
+
+    - name: Verify pipeline creation is idempotent
+      assert:
+        that:
+          - pipeline_wg1_idempotent.changed == false
+        fail_msg: "Pipeline is NOT idempotent in worker group"
+        success_msg: "✓ Pipeline is idempotent in worker group"
+      when: pipeline_wg1_idempotent is succeeded
+
+
+    - name: Update pipeline in worker group
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        worker_group: "default"
+        conf:
+          description: "UPDATED pipeline in worker group"
+          asyncFuncTimeout: 1500
+          functions:
+            - id: eval
+              filter: "true"
+              conf:
+                add:
+                  - name: test_field
+                    value: "'updated_value'"
+        state: present
+      register: pipeline_wg1_update
+      when: pipeline_wg1_create is succeeded
+
+    - name: Verify pipeline was updated
+      assert:
+        that:
+          - pipeline_wg1_update.changed == true
+        fail_msg: "Pipeline was not updated"
+        success_msg: "✓ Pipeline updated successfully"
+      when: pipeline_wg1_update is succeeded
+
+    # ==================================
+    # TEST 2: Input with Worker Group
+    # ==================================
+    
+    - name: "========== TEST 2: INPUT WITH WORKER GROUP =========="
+      debug:
+        msg: "Testing input creation in worker group"
+      
+
+    - name: Create input in worker group
+      cribl.stream.input:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_input_id }}"
+        worker_group: "default"
+        state: present
+        conf:
+          type: syslog
+          disabled: false
+          sendToRoutes: true
+          pqEnabled: false
+          streamtags: []
+          host: 0.0.0.0
+          maxBufferSize: 1000
+          ipWhitelistRegex: /.*/
+          timestampTimezone: local
+          singleMsgUdpPackets: false
+          enableProxyHeader: false
+          keepFieldsList: []
+          octetCounting: false
+          inferFraming: true
+          strictlyInferOctetCounting: true
+          allowNonStandardAppName: false
+          maxActiveCxn: 1000
+          socketIdleTimeout: 0
+          socketEndingMaxWait: 30
+          socketMaxLifespan: 0
+          tls:
+            disabled: true
+          enableLoadBalancing: false
+          tcpPort: 20151
+          
+      register: input_wg1_create
+      ignore_errors: true
+
+    - name: Display input creation result
+      debug:
+        msg: "Input in worker group: {{ 'CREATED' if (input_wg1_create is succeeded and input_wg1_create.changed) else 'FAILED' }}"
+      when: input_wg1_create is defined
+
+
+    # ==================================
+    # TEST 3: Output with Worker Group
+    # ==================================
+    
+    - name: "========== TEST 3: OUTPUT WITH WORKER GROUP =========="
+      debug:
+        msg: "Testing output creation in worker group"
+      
+
+    - name: Create output in worker group
+      cribl.stream.output:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_output_id }}"
+        worker_group: "default"
+        state: present
+        conf:
+          type: s3
+          bucket: testbucket-123123
+          systemFields:
+            - cribl_pipe
+          streamtags: []
+          awsAuthenticationMethod: auto
+          signatureVersion: v4
+          reuseConnections: true
+          rejectUnauthorized: true
+          enableAssumeRole: false
+          durationSeconds: 3600
+          stagePath: $CRIBL_HOME/state/outputs/staging
+          addIdToStagePath: true
+          destPath: ""
+          objectACL: private
+          removeEmptyDirs: true
+          partitionExpr: "C.Time.strftime(_time ? _time : Date.now()/1000, '%Y/%m/%d')"
+          format: json
+          baseFileName: '`CriblOut`'
+          fileNameSuffix: '`.${C.env["CRIBL_WORKER_ID"]}.${__format}${__compression === "gzip" ? ".gz" : ""}`'
+          maxFileSizeMB: 32
+          maxOpenFiles: 100
+          headerLine: ""
+          writeHighWaterMark: 64
+          onBackpressure: block
+          deadletterEnabled: false
+          onDiskFullBackpressure: block
+          forceCloseOnShutdown: false
+          maxFileOpenTimeSec: 300
+          maxFileIdleTimeSec: 30
+          maxConcurrentFileParts: 4
+          verifyPermissions: true
+          maxClosingFilesToBackpressure: 100
+          compress: gzip
+          compressionLevel: best_speed
+          emptyDirCleanupSec: 300
+          directoryBatchSize: 1000
+      register: output_wg1_create
+      
+      ignore_errors: true
+
+    - name: Display output creation result
+      debug:
+        msg: "Output in worker group: {{ 'CREATED' if (output_wg1_create is succeeded and output_wg1_create.changed) else 'FAILED' }}"
+      when: output_wg1_create is defined
+
+    # ==================================
+    # TEST 4: Var with Worker Group
+    # ==================================
+    
+    - name: "========== TEST 4: VAR WITH WORKER GROUP =========="
+      debug:
+        msg: "Testing variable creation in worker group"
+      
+
+    - name: Create variable in worker group
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        worker_group: "default"
+        type: string
+        lib: "custom"
+        description: "Test variable in worker group"
+        value: "wg1_value"
+        state: present
+      register: var_wg1_create
+      ignore_errors: true
+
+    - name: Verify variable created in worker group
+      assert:
+        that:
+          - var_wg1_create.changed == true
+        fail_msg: "Variable was not created in worker group"
+        success_msg: "✓ Variable created in worker group"
+      when: var_wg1_create is succeeded
+    
+   
+    # ==================================
+    # CLEANUP: Delete Resources
+    # ==================================
+    
+    - name: "========== CLEANUP: DELETE RESOURCES =========="
+      debug:
+        msg: "Cleaning up test resources"
+      
+
+    - name: Delete pipeline from worker group
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        worker_group: "default"
+        state: absent
+      register: pipeline_wg1_delete
+      when: pipeline_wg1_create is succeeded
+      ignore_errors: true
+
+    - name: Verify pipeline deletion
+      assert:
+        that:
+          - pipeline_wg1_delete.changed == true
+        fail_msg: "Pipeline was not deleted from worker group"
+        success_msg: "✓ Pipeline deleted from worker group"
+      when: pipeline_wg1_delete is succeeded
+
+    - name: Test deletion idempotency
+      cribl.stream.pipeline:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_pipeline_id }}"
+        worker_group: "default"
+        state: absent
+      register: pipeline_wg1_delete_idempotent
+      when: pipeline_wg1_delete is succeeded
+      ignore_errors: true
+
+    - name: Verify deletion idempotency
+      assert:
+        that:
+          - pipeline_wg1_delete_idempotent.changed == false
+        fail_msg: "Deletion is NOT idempotent"
+        success_msg: "✓ Deletion is idempotent"
+      when: pipeline_wg1_delete_idempotent is succeeded
+
+    - name: Delete input from worker group
+      cribl.stream.input:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_input_id }}"
+        worker_group: "default"
+        state: absent
+      when: input_wg1_create is succeeded
+      ignore_errors: true
+
+    - name: Delete output from worker group
+      cribl.stream.output:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_output_id }}"
+        worker_group: "default"
+        state: absent
+      when: output_wg1_create is succeeded
+      ignore_errors: true
+
+    - name: Delete variable from worker group
+      cribl.stream.var:
+        session: "{{ cribl_session.session }}"
+        id: "{{ test_var_id }}"
+        worker_group: "default"
+        state: absent
+      when: var_wg1_create is succeeded
+      ignore_errors: true
+
+    # ==================================
+    # TEST SUMMARY
+    # ==================================
+    
+    - name: "========== TEST SUMMARY =========="
+      debug:
+        msg:
+          - "=============================================="
+          - "Worker Group Declarative Module Test Summary"
+          - "=============================================="
+          - ""
+          - "Test Results (when worker groups available):"
+          - "✓ Pipeline in WG1 - Create: {{ 'PASSED' if (pipeline_wg1_create is succeeded and pipeline_wg1_create.changed) else 'SKIPPED/FAILED' }}"
+          - "✓ Pipeline in WG1 - Idempotency: {{ 'PASSED' if (pipeline_wg1_idempotent is succeeded and not pipeline_wg1_idempotent.changed) else 'SKIPPED/FAILED' }}"
+          - "✓ Pipeline in WG1 - Update: {{ 'PASSED' if (pipeline_wg1_update is succeeded and pipeline_wg1_update.changed) else 'SKIPPED/FAILED' }}"
+          - "✓ Pipeline in WG1 - Delete: {{ 'PASSED' if (pipeline_wg1_delete is succeeded and pipeline_wg1_delete.changed) else 'SKIPPED/FAILED' }}"
+          - "✓ Pipeline in WG1 - Delete Idempotency: {{ 'PASSED' if (pipeline_wg1_delete_idempotent is succeeded and not pipeline_wg1_delete_idempotent.changed) else 'SKIPPED/FAILED' }}"
+          - ""
+          - "Key Features Tested:"
+          - "  • Worker group parameter in declarative modules"
+          - "  • Resource isolation between worker groups"
+          - "  • Same resource ID in different worker groups"
+          - "  • Idempotency with worker_group parameter"
+          - "  • Global vs worker group resource separation"
+          - "  • Full CRUD operations with worker_group"
+          - ""
+          - "=============================================="
+

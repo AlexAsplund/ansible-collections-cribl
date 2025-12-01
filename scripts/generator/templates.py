@@ -281,6 +281,13 @@ options:
         type: str
         required: true
 {extra_params_doc}
+    worker_group:
+        description:
+            - Worker Group ID to target for this resource.
+            - If specified, the resource will be managed in the specified worker group using the C(/m/{{worker_group}}) API endpoint.
+            - If omitted, the resource is managed globally (leader node or default context).
+        type: str
+        required: false
     state:
         description:
             - Desired state of the {resource_name}.
@@ -307,16 +314,24 @@ EXAMPLES = r\'\'\'
     validate_certs: false
   register: cribl_session
 
-- name: Ensure {resource_name} exists
+- name: Ensure {resource_name} exists globally
   cribl.{product}.{resource_name}:
     session: "{{{{ cribl_session.session }}}}"
     {id_param}: my_{resource_name}
     state: present
 
-- name: Remove {resource_name}
+- name: Ensure {resource_name} exists in specific worker group
   cribl.{product}.{resource_name}:
     session: "{{{{ cribl_session.session }}}}"
     {id_param}: my_{resource_name}
+    worker_group: production
+    state: present
+
+- name: Remove {resource_name} from worker group
+  cribl.{product}.{resource_name}:
+    session: "{{{{ cribl_session.session }}}}"
+    {id_param}: my_{resource_name}
+    worker_group: production
     state: absent
 
 # Alternative: Direct authentication with token
@@ -375,6 +390,7 @@ def main():
     timeout = module.params['timeout']
     
     resource_id = module.params['{id_param}']
+    worker_group = module.params.get('worker_group')
     state = module.params['state']
 
     try:
@@ -389,15 +405,19 @@ def main():
                 timeout=timeout
             )
 
-        resource = CriblResource(module, client, resource_id, '{endpoint_base}')
+        resource = CriblResource(module, client, resource_id, '{endpoint_base}', worker_group=worker_group)
 
         if state == 'present':
             desired_state = {{'{id_param}': resource_id}}
             # Add any additional parameters from module.params
             for key, value in module.params.items():
-                if key not in ['session', 'base_url', 'token', 'validate_certs', 'timeout', 'state', '{id_param}']:
+                if key not in ['session', 'base_url', 'token', 'validate_certs', 'timeout', 'state', '{id_param}', 'worker_group']:
                     if value is not None:
-                        desired_state[key] = value
+                        # Special handling for 'conf' dict - merge for inputs/outputs only
+                        if key == 'conf' and isinstance(value, dict) and '{resource_name}' in ['input', 'output']:
+                            desired_state.update(value)
+                        else:
+                            desired_state[key] = value
             
             result = resource.ensure_state(state, desired_state, update_method='{update_method}')
         else:
@@ -639,6 +659,7 @@ module: auth_session
 short_description: Create and manage Cribl authentication session
 description:
     - Creates an authenticated session with Cribl API that can be reused across multiple modules.
+    - Supports two authentication methods - traditional username/password and OAuth2 Client Credentials (Cribl Cloud).
     - Handles automatic token refresh and expiration.
     - Returns a session object that can be passed to other Cribl modules.
     - This is the recommended way to authenticate with Cribl - it's more efficient and secure.
@@ -649,19 +670,49 @@ options:
     base_url:
         description:
             - Base URL of the Cribl instance.
+            - For Cribl Cloud use your org URL (e.g., C(https://main-myorg.cribl.cloud)).
         type: str
         required: true
     username:
         description:
-            - Username for authentication.
+            - Username for traditional authentication.
+            - Required when using username/password authentication.
+            - Mutually exclusive with C(client_id)/C(client_secret).
         type: str
-        required: true
+        required: false
     password:
         description:
-            - Password for authentication.
+            - Password for traditional authentication.
+            - Required when using username/password authentication.
+            - Mutually exclusive with C(client_id)/C(client_secret).
         type: str
-        required: true
+        required: false
         no_log: true
+    client_id:
+        description:
+            - OAuth2 client ID for Cribl Cloud authentication.
+            - Required when using OAuth2 authentication.
+            - Mutually exclusive with C(username)/C(password).
+            - Obtain from Cribl Cloud under Settings > API Credentials.
+        type: str
+        required: false
+    client_secret:
+        description:
+            - OAuth2 client secret for Cribl Cloud authentication.
+            - Required when using OAuth2 authentication.
+            - Mutually exclusive with C(username)/C(password).
+            - Obtain from Cribl Cloud under Settings > API Credentials.
+        type: str
+        required: false
+        no_log: true
+    oauth_token_url:
+        description:
+            - OAuth2 token endpoint URL.
+            - Only used for OAuth2 authentication.
+            - Default is Cribl Cloud's token endpoint.
+        type: str
+        required: false
+        default: https://login.cribl.cloud/oauth/token
     validate_certs:
         description:
             - Whether to validate SSL certificates.
@@ -678,11 +729,14 @@ notes:
     - This module creates a session that can be passed to other Cribl modules.
     - Sessions automatically handle token refresh when tokens expire.
     - Store the session in a registered variable and pass it to other modules.
+    - Authentication method is automatically detected based on parameters provided.
+    - Use C(username)/C(password) for on-prem or traditional Cribl instances.
+    - Use C(client_id)/C(client_secret) for Cribl Cloud with API credentials.
 \'\'\'
 
 EXAMPLES = r\'\'\'
-# Create a session and use it in other modules
-- name: Create Cribl authentication session
+# Traditional username/password authentication (on-prem or Cribl Cloud)
+- name: Create session with username/password
   cribl.{product}.auth_session:
     base_url: https://cribl.example.com
     username: admin
@@ -691,17 +745,25 @@ EXAMPLES = r\'\'\'
   register: cribl_session
   no_log: true
 
-- name: Get system users using the session
+- name: Use session in other modules
   cribl.{product}.system_users_get:
     session: "{{{{ cribl_session.session }}}}"
   register: users
 
-- name: Create a new user using the same session
-  cribl.{product}.system_users_post:
-    session: "{{{{ cribl_session.session }}}}"
-    username: newuser
-    email: newuser@example.com
-    state: present
+# OAuth2 authentication for Cribl Cloud
+- name: Create session with OAuth2 (Cribl Cloud)
+  cribl.{product}.auth_session:
+    base_url: https://main-myorg.cribl.cloud
+    client_id: "{{{{ cribl_client_id }}}}"
+    client_secret: "{{{{ cribl_client_secret }}}}"
+    validate_certs: true
+  register: cribl_cloud_session
+  no_log: true
+
+- name: Use Cribl Cloud session
+  cribl.{product}.system_users_get:
+    session: "{{{{ cribl_cloud_session.session }}}}"
+  register: cloud_users
 
 # Session can be reused across multiple tasks and roles
 - name: Use session in a loop
@@ -724,11 +786,14 @@ session:
             description: Base URL of the Cribl instance
             type: str
         token:
-            description: Authentication token
+            description: Authentication token (bearer token or OAuth2 access token)
             type: str
         token_expiry:
             description: Unix timestamp when token expires
             type: float
+        auth_type:
+            description: Authentication type used (password or oauth2)
+            type: str
         validate_certs:
             description: Whether SSL certificate validation is enabled
             type: bool
@@ -739,7 +804,12 @@ msg:
     description: Success message
     type: str
     returned: always
-    sample: "Successfully authenticated with Cribl"
+    sample: "Successfully authenticated with Cribl using OAuth2"
+auth_type:
+    description: Authentication method used
+    type: str
+    returned: always
+    sample: "oauth2"
 \'\'\'
 
 from ansible.module_utils.basic import AnsibleModule
@@ -753,29 +823,56 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             base_url=dict(type='str', required=True),
-            username=dict(type='str', required=True),
-            password=dict(type='str', required=True, no_log=True),
+            username=dict(type='str', required=False),
+            password=dict(type='str', required=False, no_log=True),
+            client_id=dict(type='str', required=False),
+            client_secret=dict(type='str', required=False, no_log=True),
+            oauth_token_url=dict(type='str', required=False, default='https://login.cribl.cloud/oauth/token'),
             validate_certs=dict(type='bool', default=False),
             timeout=dict(type='int', default=30),
         ),
+        required_one_of=[
+            ['username', 'client_id'],
+        ],
+        required_together=[
+            ['username', 'password'],
+            ['client_id', 'client_secret'],
+        ],
+        mutually_exclusive=[
+            ['username', 'client_id'],
+            ['password', 'client_secret'],
+        ],
         supports_check_mode=True,
     )
 
     base_url = module.params['base_url']
-    username = module.params['username']
-    password = module.params['password']
+    username = module.params.get('username')
+    password = module.params.get('password')
+    client_id = module.params.get('client_id')
+    client_secret = module.params.get('client_secret')
+    oauth_token_url = module.params['oauth_token_url']
     validate_certs = module.params['validate_certs']
     timeout = module.params['timeout']
+
+    # Determine auth type
+    if client_id and client_secret:
+        auth_type = 'oauth2'
+        auth_method = 'OAuth2 Client Credentials'
+    else:
+        auth_type = 'password'
+        auth_method = 'username/password'
 
     try:
         if module.check_mode:
             module.exit_json(
                 changed=False,
-                msg="Check mode: Would create authentication session",
+                msg=f"Check mode: Would create authentication session using {{auth_method}}",
+                auth_type=auth_type,
                 session={{
                     'base_url': base_url,
                     'validate_certs': validate_certs,
-                    'timeout': timeout
+                    'timeout': timeout,
+                    'auth_type': auth_type
                 }}
             )
 
@@ -784,6 +881,9 @@ def main():
             base_url=base_url,
             username=username,
             password=password,
+            client_id=client_id,
+            client_secret=client_secret,
+            oauth_token_url=oauth_token_url,
             validate_certs=validate_certs,
             timeout=timeout
         )
@@ -794,14 +894,15 @@ def main():
 
         module.exit_json(
             changed=False,  # Authentication doesn't change state
-            msg=f"Successfully authenticated with Cribl at {{base_url}}",
+            msg=f"Successfully authenticated with Cribl at {{base_url}} using {{auth_method}}",
+            auth_type=auth_type,
             session=session_dict
         )
 
     except CriblAPIError as e:
-        module.fail_json(msg=str(e))
+        module.fail_json(msg=str(e), auth_type=auth_type)
     except Exception as e:
-        module.fail_json(msg=f"Unexpected error: {{str(e)}}")
+        module.fail_json(msg=f"Unexpected error: {{str(e)}}", auth_type=auth_type)
 
 
 if __name__ == '__main__':
@@ -904,4 +1005,5 @@ class ExampleTemplate:
     # More resources available:
     # {", ".join(remaining_modules)}
 '''
+        return ''
         return ''

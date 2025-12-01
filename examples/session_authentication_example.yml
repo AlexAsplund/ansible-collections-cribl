@@ -26,6 +26,16 @@
       register: cribl_session
       no_log: true  # Don't log credentials
 
+    # # OR use OAuth2 authentication for Cribl Cloud
+    # - name: Authenticate with Cribl Cloud
+    #   cribl.core.auth_session:
+    #     base_url: https://main-myorg.cribl.cloud
+    #     client_id: "{{ cribl_client_id }}"
+    #     client_secret: "{{ cribl_client_secret }}"
+    #     validate_certs: true
+    #   register: session
+    #   no_log: true
+
     # Step 2: Use the session in multiple tasks without re-authenticating
     
     - name: Get all system users

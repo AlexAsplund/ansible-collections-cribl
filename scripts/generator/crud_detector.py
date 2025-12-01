@@ -221,6 +221,18 @@ class CRUDDetector:
         """
         params = {}
         
+        resource_name = resource.get('resource_name', '')
+        
+        # Special handling for inputs and outputs - they have many type-specific parameters
+        # Use a generic 'conf' dict parameter instead of extracting all individual parameters
+        if resource_name in ['input', 'output']:
+            params['conf'] = {
+                'type': 'dict',
+                'description': f'Configuration parameters for the {resource_name}. Parameters vary by type.',
+                'required': False
+            }
+            return params
+        
         # Get schema from create operation
         schema = resource.get('schemas', {}).get('create', {})
         
