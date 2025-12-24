@@ -7,27 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.15.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.15.0)
+**Current Version**: `v4.15.1` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.15.1)
 
-Generated from [Cribl API Spec 4.15.0](https://cdn.cribl.io/dl/4.15.0/cribl-apidocs-4.15.0-f275b803.yml)
-
----
-## Why Use This?
-
-- **Auto-Generated Declarative Modules** - 49+ declarative modules automatically generated from CRUD detection
-- **Cribl Cloud OAuth2 Support** - NEW! Authenticate with Cribl Cloud using client_id/client_secret
-- **Worker Group Support** - NEW! Manage resources in specific worker groups with a simple `worker_group` parameter
-- **53 Example Playbooks** - Ready-to-use examples auto-generated for all declarative modules
-- **Declarative & Idempotent** - Define desired state, run playbooks repeatedly without side effects
-- **Production Safe** - Built-in check mode (`--check`) and diff support (`--diff`)
-- **Complete API Coverage** - 513 auto-generated imperative modules + 49 declarative modules
-- **Docker Testing Included** - Test against real Cribl instances in isolated containers
-- **OpenAPI-Driven** - Regenerate modules for any Cribl version
-- **Well Organized** - 5 focused collections matching [Cribl&#39;s official API structure](https://docs.cribl.io/cribl-as-code/api-reference/)
-- **Auto-Generated Tests** - Unit tests and integration playbooks created automatically
+Generated from [Cribl API Spec 4.15.1](https://cdn.cribl.io/dl/4.15.1/cribl-apidocs-4.15.1-1b453caa.yml)
 
 ---
-
 ## Quick Start
 Download the latest [release](https://github.com/AlexAsplund/ansible-collections-cribl/releases) and install
 
