@@ -7,71 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.15.1` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.15.1)
+**Current Version**: `v4.16.1` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.16.1)
 
-Generated from [Cribl API Spec 4.15.1](https://cdn.cribl.io/dl/4.15.1/cribl-apidocs-4.15.1-1b453caa.yml)
-
----
-## Quick Start
-Download the latest [release](https://github.com/AlexAsplund/ansible-collections-cribl/releases) and install
-
-### Build it manually
-
-```bash
-# Clone the repository
-git clone https://github.com/AlexAsplund/ansible-collections-cribl.git
-cd ansible-cribl-collection
-
-# Start Docker test environment (auto-builds modules)
-cd tests/docker
-docker-compose up -d
-
-# Or manually generate and build
-python scripts/generate_modules.py
-make build
-```
-
-### Your First Playbook (Declarative with Session Auth)
-
-```yaml
----
-- name: Configure Cribl Infrastructure
-  hosts: localhost
-  gather_facts: false
-  vars:
-    cribl_url: https://cribl.example.com
-  
-  tasks:
-    # Step 1: Create authenticated session (once per playbook)
-    - name: Authenticate with Cribl
-      cribl.core.auth_session:
-        base_url: "{{ cribl_url }}"
-        username: admin
-        password: "{{ vault_password }}"
-        validate_certs: false
-      register: cribl_session
-      no_log: true
-
-    # Step 2: Use session for all operations - no re-authentication needed!
-    - name: Ensure operations user exists
-      cribl.core.user:
-        session: "{{ cribl_session.session }}"
-        id: ops_user
-        email: ops@example.com
-        first: Operations
-        last: User
-        password: "{{ vault.ops_user_password }}" # Password is needed if the user is created
-        roles: [user]
-        state: present  # Ensures user exists with these attributes
-
-    # Test your changes safely first
-    # Run: ansible-playbook playbook.yml --check --diff
-```
-
-**Result:** Session authenticates once, user is created on first run, no changes on subsequent runs.
+Generated from [Cribl API Spec 4.16.1](https://cdn.cribl.io/dl/4.16.1/cribl-apidocs-4.16.1-20904e45.yml)
 
 ---
-
 ## Cribl Cloud OAuth2 Authentication
 
 Authenticate with Cribl Cloud using OAuth2 Client Credentials!
