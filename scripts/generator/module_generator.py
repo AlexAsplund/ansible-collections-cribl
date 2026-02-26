@@ -81,7 +81,13 @@ class ModuleGenerator:
         
         code = self.template.main_function_start(arg_spec)
         # Define endpoint first, before any substitution
-        code += f'\n        endpoint = "{endpoint}"\n'
+        # Allow modules to use the original endpoint↴ still supporting worker 
+        # group prefixing.
+        code += f'''
+        endpoint = "{endpoint}"
+        if worker_group:
+            endpoint = f"/m/{{worker_group}}{endpoint}"
+        '''
         code += self._generate_endpoint_substitution(endpoint, path_params)
         code += self._generate_data_preparation(params, path_params)
         code += self.template.api_call_without_endpoint_def(method)
