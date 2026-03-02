@@ -55,6 +55,14 @@ jobs:
           # Also quote =~ for consistency (though it's less problematic)
           sed -i 's/^\(\s*\)- =~$/\1- "=~"/' schemas/cribl-apidocs.yml
           echo "✓ YAML fixes applied"
+          
+          echo "Fixing YAML parsing issues in schema..."
+          # Fix bare '=' in enum lists which causes YAML parser errors
+          # The bare '=' is interpreted as a YAML tag and must be quoted
+          sed -i 's/^\(\s*\)- =$/\1- "="/' schemas/cribl-apidocs.yml
+          # Also quote =~ for consistency (though it's less problematic)
+          sed -i 's/^\(\s*\)- =~$/\1- "=~"/' schemas/cribl-apidocs.yml
+          echo "✓ YAML fixes applied"
 
           echo "Schema downloaded successfully"
           head -n 20 schemas/cribl-apidocs.yml
