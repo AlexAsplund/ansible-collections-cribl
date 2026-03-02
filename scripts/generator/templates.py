@@ -46,6 +46,14 @@ options:
         type: str
         choices: [ present, absent ]
         default: present
+    worker_group:
+        description:
+            - Worker Group ID to target for this resource.
+            - If specified, the resource will be managed in the specified worker group using the C(/m/{{worker_group↵
+}}) API endpoint.
+            - If omitted, the resource is managed globally (leader node or default context).
+        type: str
+        required: false
 requirements:
     - python >= 3.6
 notes:
@@ -123,6 +131,7 @@ def main():
             validate_certs=dict(type='bool', default=False),
             timeout=dict(type='int', default=30),
             state=dict(type='str', default='present', choices=['present', 'absent']),
+            worker_group=dict(type='str', required=False),
 {arg_spec}
         ),
         required_one_of=[['session', 'token']],
@@ -136,6 +145,7 @@ def main():
     validate_certs = module.params['validate_certs']
     timeout = module.params['timeout']
     state = module.params['state']
+    worker_group = module.params.get('worker_group')
 
     try:
         # Initialize client with session or token
