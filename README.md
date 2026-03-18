@@ -7,46 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.16.1` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.16.1)
+**Current Version**: `v4.17.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.17.0)
 
-Generated from [Cribl API Spec 4.16.1](https://cdn.cribl.io/dl/4.16.1/cribl-apidocs-4.16.1-20904e45.yml)
-
----
-## Installation & Building
-
-### Quick Install for Users
-Download from [releases](https://github.com/AlexAsplund/ansible-collections-cribl/releases) and install:
-```bash
-wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.15.0/cribl-core-4.15.0.tar.gz
-wget https://github.com/AlexAsplund/ansible-collections-cribl/releases/download/v4.15.0/cribl-stream-4.15.0.tar.gz
-ansible galaxy collection install cribl-core-4.15.0.tar.gz
-ansible galaxy collection install cribl-stream-4.15.0.tar.gz
-```
-
-### Build from Source
-
-```bash
-# 1. Clone repository
-git clone https://github.com/AlexAsplund/ansible-collections-cribl
-cd ansible-cribl-collection
-
-# 2. Generate modules from OpenAPI spec
-make generate
-# OR: python scripts/generate_modules.py
-
-# 3. Build collection tarballs
-make build
-
-# 4. Install locally
-make install-local          # To ./ansible_collections/
-# OR
-make install-collections    # To ~/.ansible/collections/
-```
-
-See **[QUICK_START.md](QUICK_START.md)** for quick start guide and **[RELEASE.md](RELEASE.md)** for releasing to GitHub.
+Generated from [Cribl API Spec 4.17.0](https://cdn.cribl.io/dl/4.17.0/cribl-apidocs-4.17.0-7e952fa7.yml)
 
 ---
-
 ## What's Included
 
 ### 5 Product-Focused Collections
