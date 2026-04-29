@@ -7,60 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.17.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.17.0)
+**Current Version**: `v4.17.1` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.17.1)
 
-Generated from [Cribl API Spec 4.17.0](https://cdn.cribl.io/dl/4.17.0/cribl-apidocs-4.17.0-7e952fa7.yml)
-
----
-## What's Included
-
-### 5 Product-Focused Collections
-
-| Collection             | Imperative Modules | Declarative Modules | Purpose                                                        |
-| ---------------------- | -----------------: | ------------------: | -------------------------------------------------------------- |
-| **cribl.core**   |                276 |                  22 | Users, teams, worker groups, authentication, system management |
-| **cribl.stream** |                127 |                  16 | Pipelines, routes, inputs, outputs, packs, data processing     |
-| **cribl.search** |                 80 |                  10 | Datasets, searches, dashboards, jobs                           |
-| **cribl.edge**   |                 19 |                   1 | Edge nodes, processes, containers, AppScope                    |
-| **cribl.lake**   |                 11 |                   0 | Data lakes, storage locations, datasets                        |
-| **Total**        |      **513** |        **49** | **Complete Cribl API automation**                        |
-
-### Module Types
-
-#### Declarative Modules (Recommended for Configuration Management)
-
-**Idempotent, state-based resource management:**
-
-```yaml
-- cribl.core.user           # Manage users
-- cribl.core.worker_group   # Manage worker groups
-- cribl.stream.pipeline     # Manage pipelines
-# More declarative modules available...
-```
-
-**Benefits:**
-
-- Idempotent - safe to run repeatedly
-- Check mode support - see changes before applying
-- Diff support - see exactly what will change
-- Smart - only makes API calls when needed
-
-#### Imperative Modules (513 Generated from OpenAPI)
-
-**Direct API mapping for specific operations:**
-
-```yaml
-- cribl.core.system_instance_get    # Read operations
-- cribl.core.health_get             # Status checks
-- cribl.stream.pipelines_get        # Query resources
-- cribl.core.auth_session           # Session management (NEW!)
-# ... 509 more modules
-```
-
-**Best for:** One-off operations, queries, specific API calls
+Generated from [Cribl API Spec 4.17.1](https://cdn.cribl.io/dl/4.17.1/cribl-apidocs-4.17.1-b862732f.yml)
 
 ---
-
 ## Usage Examples
 
 ### Declarative Configuration Management
