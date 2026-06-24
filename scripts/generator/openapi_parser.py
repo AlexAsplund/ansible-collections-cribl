@@ -131,13 +131,17 @@ class OpenAPIParser:
         if '$ref' in schema:
             properties = self._resolve_schema_ref(schema['$ref'])
             for prop_name, prop_def in properties.items():
+                # JSON Schema allows non-dict property definitions
+                # (e.g. boolean schemas); skip anything we can't introspect.
+                if not isinstance(prop_def, dict):
+                    continue
                 params[prop_name] = {
                     'description': prop_def.get('description', prop_def.get('title', '')),
                     'type': self._convert_type(prop_def),
                     'required': False,
                     'location': 'body'
                 }
-        
+
         return params
 
     def _resolve_schema_ref(self, ref: str) -> Dict:
@@ -160,5 +164,13 @@ class OpenAPIParser:
             'array': 'list',
             'object': 'dict'
         }
-        return type_map.get(schema.get('type', 'str'), 'str')
+        # Defend against non-dict schemas (e.g. JSON Schema boolean values).
+        if not isinstance(schema, dict):
+            return 'str'
+        schema_type = schema.get('type', 'str')
+        # OpenAPI 3.1 allows `type` to be a list (e.g. ['string', 'null']);
+        # use the first non-null type when that happens.
+        if isinstance(schema_type, list):
+            schema_type = next((t for t in schema_type if t != 'null'), 'str')
+        return type_map.get(schema_type, 'str')
 

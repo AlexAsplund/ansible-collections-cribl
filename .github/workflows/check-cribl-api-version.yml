@@ -1,5 +1,9 @@
 name: Check Cribl API Version
 
+env:
+  # Force all JavaScript actions to run on Node 24
+  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node24
+
 on:
   schedule:
     # Run every Wednesday at 10:00 UTC
