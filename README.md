@@ -7,55 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.18.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.18.0)
+**Current Version**: `v4.18.2` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.18.2)
 
-Generated from [Cribl API Spec 4.18.0](https://cdn.cribl.io/dl/4.18.0/cribl-apidocs-4.18.0-dfc74421.yml)
-
----
-## Testing
-
-### Docker Integration Tests
-
-Test your Ansible modules against a **real Cribl instance** using Docker:
-
-```bash
-# Quick start - automatically builds modules and runs all tests
-cd tests/docker
-docker-compose up -d
-pytest test_docker_integration.py -v -m docker
-
-# Or use Make
-make test-docker
-```
-
-**Features:**
-
-- Tests against real Cribl Stream instance
-- Automatic module building in container
-- Comprehensive test coverage (connection, health, users, CRUD operations)
-- CI/CD ready
-- No manual setup required
-
-**Documentation:** See [`docs/TESTING.md`](docs/TESTING.md) for complete guide.
-
-### Other Tests
-
-```bash
-# Run all tests
-make test
-
-# Unit tests only
-make test-unit
-
-# With coverage
-make test-coverage
-
-# Linting
-make lint
-```
+Generated from [Cribl API Spec 4.18.2](https://cdn.cribl.io/dl/4.18.2/cribl-apidocs-4.18.2-fd1f0d2f.yml)
 
 ---
-
 ## Module Generator
 
 Auto-generate all Ansible modules from Cribl's OpenAPI specification:
