@@ -94,9 +94,11 @@ dmypy.json
 # Ruff
 .ruff_cache/
 
+# AI / Editor assistants
+.cursor/
+.claude/
+
 # Other
 *.ps1
-.cursor/*
-.cursor/rules/*
 schemas/
 context/

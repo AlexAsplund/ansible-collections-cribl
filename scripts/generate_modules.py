@@ -17,6 +17,15 @@ import re
 import argparse
 from pathlib import Path
 
+# PyYAML's SafeLoader treats a bare "=" key as the YAML 1.1 special "default
+# value" tag (tag:yaml.org,2002:value) and aborts with a ConstructorError.
+# The Cribl OpenAPI schema contains literal "=" scalars, so register a
+# constructor that loads them as plain strings.
+yaml.SafeLoader.add_constructor(
+    'tag:yaml.org,2002:value',
+    lambda loader, node: loader.construct_scalar(node),
+)
+
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
