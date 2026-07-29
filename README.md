@@ -7,41 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.18.2` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.18.2)
+**Current Version**: `v4.19.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.19.0)
 
-Generated from [Cribl API Spec 4.18.2](https://cdn.cribl.io/dl/4.18.2/cribl-apidocs-4.18.2-fd1f0d2f.yml)
-
----
-## Module Generator
-
-Auto-generate all Ansible modules from Cribl's OpenAPI specification:
-
-```bash
-# Generate all modules (imperative + declarative)
-python scripts/generate_modules.py --declarative
-
-# Clean and regenerate
-python scripts/generate_modules.py --clean
-
-# Specific collection only
-python scripts/generate_modules.py --product core
-
-# Use custom OpenAPI spec
-python scripts/generate_modules.py --spec path/to/cribl-api.yml
-```
-
-**Features:**
-
-- Automatic parameter extraction from OpenAPI schemas
-- Smart categorization (routes to correct product collection)
-- Documentation generation (DOCUMENTATION, EXAMPLES, RETURN blocks)
-- Type conversion (OpenAPI types → Ansible types)
-- Built-in error handling and authentication
-
-**Documentation:** See [`docs/GENERATOR.md`](docs/GENERATOR.md) for advanced usage.
+Generated from [Cribl API Spec 4.19.0](https://cdn.cribl.io/dl/4.19.0/cribl-apidocs-4.19.0-0fbd6d34.yml)
 
 ---
-
 ## Security
 
 ### SSL Certificates
