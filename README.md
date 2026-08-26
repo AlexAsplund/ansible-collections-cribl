@@ -7,48 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.19.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.19.0)
+**Current Version**: `v4.19.2` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.19.2)
 
-Generated from [Cribl API Spec 4.19.0](https://cdn.cribl.io/dl/4.19.0/cribl-apidocs-4.19.0-0fbd6d34.yml)
-
----
-## Security
-
-### SSL Certificates
-
-```yaml
-# Development (self-signed certs)
-validate_certs: false
-
-# Production (valid certs)
-validate_certs: true
-```
-
-### Secure Credentials with Ansible Vault
-
-```bash
-# Create encrypted vault
-ansible-vault create vault.yml
-
-# Add your credentials
-cribl_username: admin
-cribl_password: your-secure-password
-cribl_token: your-api-token
-
-# Use in playbooks
-ansible-playbook playbook.yml -e @vault.yml --ask-vault-pass
-```
-
-### Environment Variables
-
-```yaml
-vars:
-  cribl_url: "{{ lookup('env', 'CRIBL_URL') }}"
-  cribl_token: "{{ lookup('env', 'CRIBL_TOKEN') }}"
-```
+Generated from [Cribl API Spec 4.19.2](https://cdn.cribl.io/dl/4.19.2/cribl-apidocs-4.19.2-89cac507.yml)
 
 ---
-
 ## Documentation
 
 - **[Auto-Generation Guide](docs/AUTO_GENERATION.md)** - How automatic CRUD detection works
