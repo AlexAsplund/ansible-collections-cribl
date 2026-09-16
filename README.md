@@ -7,23 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.19.2` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.19.2)
+**Current Version**: `v4.20.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.20.0)
 
-Generated from [Cribl API Spec 4.19.2](https://cdn.cribl.io/dl/4.19.2/cribl-apidocs-4.19.2-89cac507.yml)
-
----
-## Documentation
-
-- **[Auto-Generation Guide](docs/AUTO_GENERATION.md)** - How automatic CRUD detection works
-- **[Declarative Modules Guide](docs/DECLARATIVE.md)** - Complete guide to state-based management
-- **[Testing Guide](docs/TESTING.md)** - Docker tests, unit tests, integration tests
-- **[Generator Guide](docs/GENERATOR.md)** - Module generation and customization
-- **[API Reference](docs/API_REFERENCE.md)** - All modules and parameters
-- **[Examples](docs/EXAMPLES.md)** - Real-world playbook examples
-- **[Contributing](CONTRIBUTING.md)** - How to contribute
+Generated from [Cribl API Spec 4.20.0](https://cdn.cribl.io/dl/4.20.0/cribl-apidocs-4.20.0-cee79842.yml)
 
 ---
-
 ## Project Structure
 
 ```
