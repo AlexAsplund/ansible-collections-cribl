@@ -7,43 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.20.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.20.0)
+**Current Version**: `v4.20.2` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.20.2)
 
-Generated from [Cribl API Spec 4.20.0](https://cdn.cribl.io/dl/4.20.0/cribl-apidocs-4.20.0-cee79842.yml)
-
----
-## Project Structure
-
-```
-.
-├── scripts/
-│   ├── generate_modules.py              # CLI entry point
-│   └── generator/                       # Modular generator
-│       ├── openapi_parser.py            # Parse OpenAPI specs
-│       ├── module_generator.py          # Generate imperative modules
-│       ├── declarative_generator.py     # Generate declarative modules
-│       ├── collection_manager.py        # Manage collection structure
-│       └── templates.py                 # Code templates
-├── schemas/
-│   └── cribl-apidocs-4.15.0.yml        # OpenAPI specification
-├── build/
-│   └── ansible_collections/cribl/       # Generated collections
-│       ├── core/                        # 276 modules
-│       ├── stream/                      # 127 modules
-│       ├── edge/                        # 19 modules
-│       ├── search/                      # 80 modules
-│       └── lake/                        # 11 modules
-├── docs/                                # Documentation
-├── tests/                               # Test suite
-│   ├── docker/                          # Docker integration tests
-│   ├── unit/                            # Unit tests
-│   └── integration/                     # Integration tests
-├── Makefile                             # Development commands
-└── README.md                            # This file
-```
+Generated from [Cribl API Spec 4.20.2](https://cdn.cribl.io/dl/4.20.2/cribl-apidocs-4.20.2-7199aa90.yml)
 
 ---
-
 ## Requirements
 
 - **Python**: 3.6 or higher
