@@ -7,21 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.20.2` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.20.2)
+**Current Version**: `v4.20.3` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.20.3)
 
-Generated from [Cribl API Spec 4.20.2](https://cdn.cribl.io/dl/4.20.2/cribl-apidocs-4.20.2-7199aa90.yml)
-
----
-## Requirements
-
-- **Python**: 3.6 or higher
-- **Ansible**: 2.9 or higher
-- **PyYAML**: For OpenAPI parsing
-- **Docker**: For integration tests (optional)
-- **Cribl Instance**: Stream, Edge, Search, or Lake
+Generated from [Cribl API Spec 4.20.3](https://cdn.cribl.io/dl/4.20.3/cribl-apidocs-4.20.3-ea354447.yml)
 
 ---
-
 ## Contributing
 
 Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
