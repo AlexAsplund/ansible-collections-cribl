@@ -7,20 +7,11 @@
 
 ## 📦 Latest Release
 
-**Current Version**: `v4.20.4` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.20.4)
+**Current Version**: `v4.21.0` | **Released**:  | [Download](https://github.com/AlexAsplund/ansible-collections-cribl/releases/tag/v4.21.0)
 
-Generated from [Cribl API Spec 4.20.4](https://cdn.cribl.io/dl/4.20.4/cribl-apidocs-4.20.4-9651be2b.yml)
-
----
-## Support
-
-- **Documentation**: [Cribl Docs](https://docs.cribl.io)
-- **API Reference**: [Cribl API](https://docs.cribl.io/cribl-as-code/api-reference/)
-- **Issues**: [GitHub Issues](https://github.com/AlexAsplund/ansible-collections-cribl/issues)
-- **Cribl Community**: [Slack](https://cribl.io/community)
+Generated from [Cribl API Spec 4.21.0](https://cdn.cribl.io/dl/4.21.0/cribl-apidocs-4.21.0-5bbb9984.yml)
 
 ---
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
